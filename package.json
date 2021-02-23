@@ -1,0 +1,23 @@
+{
+  "name": "unitrivia_backend",
+  "version": "1.0.0",
+  "description": "Backend del juego UniTrivia",
+  "main": "index.js",
+  "dependencies": {
+    "express": "^4.17.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/UNIZAR-30226-2021-13/UniTrivia_backend.git"
+  },
+  "author": "UniGames",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/UNIZAR-30226-2021-13/UniTrivia_backend/issues"
+  },
+  "homepage": "https://github.com/UNIZAR-30226-2021-13/UniTrivia_backend#readme"
+}
