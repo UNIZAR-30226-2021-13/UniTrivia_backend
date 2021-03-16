@@ -70,7 +70,7 @@ db.createCollection("preguntas",{
 			properties: {
 				_id: {
 					bsonType: "int",
-					description: "Identificador único de la pregunta. String y Obligatorio"
+					description: "Identificador único de la pregunta. Entero y Obligatorio"
 				},
 				pregunta: {
 					bsonType: "string",
@@ -94,3 +94,23 @@ db.createCollection("preguntas",{
 	validationAction: "error"
 })
 
+
+db.createCollection("imagenes",{
+	validator: {
+		$jsonSchema: {
+			bsonType: "object",
+			required: ["_id", "tipo"],
+			properties: {
+				_id: {
+					bsonType: "ObjectId",
+					description: "Identificador único de la imagen. Entero y Obligatorio"
+				},
+				tipo: {
+					enum: [ "Avatar", "Banner", "Ficha", null ],
+					description: "Cadena que contiene el tipo de imagen. Enumeración y Obligatorio"
+				}
+			}
+		}
+	},
+	validationAction: "error"
+})
