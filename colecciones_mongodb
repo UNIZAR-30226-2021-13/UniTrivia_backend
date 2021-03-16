@@ -66,10 +66,10 @@ db.createCollection("preguntas",{
 	validator: {
 		$jsonSchema: {
 			bsonType: "object",
-			required: ["nombre_id", "pregunta", "categoria", "resp_c", "resps_inc"],
+			required: ["_id", "pregunta", "categoria", "resp_c", "resps_inc"],
 			properties: {
-				nombre_id: {
-					bsonType: "string",
+				_id: {
+					bsonType: "int",
 					description: "Identificador único de la pregunta. String y Obligatorio"
 				},
 				pregunta: {
