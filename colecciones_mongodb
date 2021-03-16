@@ -1,0 +1,63 @@
+db.createCollection("usuarios",{
+	validator: {
+		$jsonSchema: {
+			bsonType: "object",
+			required: ["_id", "mail", "hash", "preg", "res"],
+			properties: {
+				_id: {
+					bsonType: "string",
+					description: "Nombre de Usuario único. String y Obligatorio"
+				},
+				mail: {
+					bsonType: "string",
+					description: "Correo electrónico del usuario. String y Obligatorio"
+				},
+				hash: {
+					bsonType: "string",
+					description: "Contraseña del usuario en hash"
+				},
+				preg: {
+					bsonType: "string",
+					description: "Pregunta de Seguridad para recuperar la contraseña"
+				},
+				res: {
+					bsonType: "string",
+					description: "Respuesta de segurar para recuperar la contraseña"
+				},
+				cns: {
+					bsonType: "int",
+					minimum: 0
+					description: "Monedas que tiene el jugador en el momento actual",
+				}
+				nj: {
+					bsonType: "int",
+					minimum: 0
+					description: "Número de partidas jugadas"
+				},
+				ng: {
+					bsonType: "int",
+					minimum: 0
+					description: "Número de partidas ganadas"
+				},
+				avtr: {
+					bsonType: "int",
+					description: "Id del avatar"
+				},
+				bnr: {
+					bsonType: "int",
+					description: "Id del banner"
+				},
+				fich: {
+					bsonType: "int",
+					description: "Id de la forma de ficha del usuario"
+				},
+				rfs: {
+					bsonType: ["int"],
+					description: "Ids de todos los objetos comprados por el usuario"
+				}
+			}
+		}
+	},
+	validationAction: "error"
+})
+
