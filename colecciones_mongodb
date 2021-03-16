@@ -61,3 +61,36 @@ db.createCollection("usuarios",{
 	validationAction: "error"
 })
 
+
+db.createCollection("preguntas",{
+	validator: {
+		$jsonSchema: {
+			bsonType: "object",
+			required: ["nombre_id", "pregunta", "categoria", "resp_c", "resps_inc"],
+			properties: {
+				nombre_id: {
+					bsonType: "string",
+					description: "Identificador único de la pregunta. String y Obligatorio"
+				},
+				pregunta: {
+					bsonType: "string",
+					description: "Cadena que contiene la pregunta en sí. String y Obligatorio"
+				},
+				categoria: {
+					bsonType: "string",
+					description: "Categoría a la que pertenece la pregunta. String y Obligatorio"
+				},
+				resp_c: {
+					bsonType: "string",
+					description: "Cadena que representa la respuesta correcta a la pregunta. String y Obligatorio"
+				},
+				resps_inc: {
+					bsonType: ["string"],
+					description: "Array de cadenas que representan las respuestas incorrectas. String y Obligatorio"
+				}
+			}
+		}
+	},
+	validationAction: "error"
+})
+
