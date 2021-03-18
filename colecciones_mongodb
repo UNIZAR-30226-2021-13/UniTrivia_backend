@@ -103,12 +103,16 @@ db.createCollection("imagenes",{
 			properties: {
 				_id: {
 					bsonType: "ObjectId",
-					description: "Identificador único de la imagen. Entero y Obligatorio"
+					description: "Identificador único de la imagen. Id y Obligatorio"
 				},
 				tipo: {
 					enum: [ "Avatar", "Banner", "Ficha", null ],
 					description: "Cadena que contiene el tipo de imagen. Enumeración y Obligatorio"
-				}
+				},
+				img: {
+                	bsonType: "binData",
+                	description: "Datos binarios de la imagen"
+                }
 			}
 		}
 	},
