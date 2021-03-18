@@ -1,0 +1,223 @@
+openapi: 3.0.3
+info:
+  title: UniTrivia
+  description: API to the game of UniTrivia
+  version: 1.0.0
+  license:
+    name: MIT License
+    url: https://opensource.org/licenses/mit-license.php
+servers:
+  - url: https://unitrivia.com/beneapi
+paths:
+  /login:
+    get:
+      description: |
+        Se le pasa como parámetros el nombre de usuario y la contraseña en texto plano.
+
+        Devuelve el identificador temporal con el que identificar todas las operaciones
+        relacionadas con el usuario y un error en caso de no poder identificarlo.
+      operationId: login
+      parameters:
+        - name: username
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: password
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Login realizado exitosamente
+          content:
+            application/json:
+              schema:
+                type: string
+        default:
+          description: Error en el login
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /register:
+    get:
+      description: |
+        Se le pasa comos parámetros el nombre de usuario, la contraseña en texto plano, el email
+        la pregunta de seguridad y la respuesta a dicha presgunta.
+
+        Devuelve un mensaje de confirmación de caso de poder crear el usuario y un error en caso de no poder crearlo.
+      operationId: register
+      parameters:
+        - name: username
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: password
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: email
+            in: query
+            required: true
+            schema:
+              type: string
+        - name: preg
+            in: query
+            required: true
+            schema:
+              type: string
+        - name: res
+            in: query
+            required: true
+            schema:
+              type: string
+      responses:
+        '200':
+          description: Usuario creado exitosamente
+          content:
+            application/json:
+              schema:
+                type: string
+        default:
+          description: Error en el registro
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /profile/modify/password/{username}:
+    get:
+      description: |
+        Se le pasa comos parámetros el nombre de usuario, la contraseña nueva en texto plano
+        y la contraseña vieja o actual en texto plano
+
+        Devuelve un mensaje de confirmación de caso de poder modificar la contraseña y
+        un error en caso de error.
+      operationId: modify_password
+      parameters:
+        - name: username
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: new_password
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: old_password
+            in: query
+            required: true
+            schema:
+              type: string
+        - name: res
+            in: query
+            required: true
+            schema:
+              type: string
+      responses:
+        '200':
+          description: Contraseña cambiada exitosamente
+          content:
+            application/json:
+              schema:
+                type: string
+        default:
+          description: Error al cambiar contraseña
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /login/recover/password:
+    get:
+      description: |
+        Se le pasa comos parámetros el nombre de usuario, la respuesta a la pregunta de seguridad y
+        la contraseña nueva en texto plano.
+
+        Devuelve un mensaje de confirmación de caso de que la respuesta coincida con la proporcionda y se
+        ha podido poder modificar la contraseña. Devuelve error en caso contrario.
+
+      operationId: recover_password
+      parameters:
+        - name: username
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: res
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: new_password
+            in: query
+            required: true
+            schema:
+              type: string
+        - name: res
+            in: query
+            required: true
+            schema:
+              type: string
+      responses:
+        '200':
+          description: Contraseña cambiada exitosamente
+          content:
+            application/json:
+              schema:
+                type: string
+        default:
+          description: Error al cambiar contraseña
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /login/recover/pregunta:
+    get:
+      description: |
+        Se le pasa como parámetro el nombre de usuario.
+
+        Devuelve la pregunta de seguridad del usuario. Devuelve error en caso de no poder recuperar la pregunta.
+
+      operationId: recover_preg
+      parameters:
+        - name: username
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Pregunta recuperada exitosamente
+          content:
+            application/json:
+              schema:
+                type: string
+        default:
+          description: Error al recuperar pregunta contraseña
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string
+
