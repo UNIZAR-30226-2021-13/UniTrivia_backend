@@ -207,6 +207,152 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
+  /logAsGuest:
+    get:
+      description: |
+        No es necesario el paso de ningún parámetro.
+
+        Devuelve el identificador temporal con el que identificar todas las operaciones
+        relacionadas con el invitado.
+      operationId: log_as_guest
+      responses:
+        default:
+          description: Se le devuelve el identificador asignado
+          content:
+            application/json:
+              schema:
+              type: string
+
+  /profile/listaComprados/{username}:
+    get:
+      description: |
+        Se le pasa como parámetros el identificador que se ha asociado a dicho usuario en el login.
+
+        Devuelve una lista con los objetos comprados por dicho usuario. Devuelve un mensaje de error si 
+        hay algún probema al recuperar dicha lista.
+      operationId: get_listaComprados
+      parameters:
+        - name: id_user
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Lista de objetos comprados por dicho usuario
+          content:
+            application/json:
+              schema:
+                type: [ int ]
+        default:
+          description: Error al obtener listado de objetos comprados
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /profile/modify/avatar/{username}:
+    get:
+      description: |
+        Se le pasa comos parámetros el identificador que se ha asociado a dicho usuario en el login y
+        el id del nuevo avatar que quiere usar el usuario en cuestión, este útimo debe pertenecer a su lista de comprados.
+
+        Devuelve un mensaje de confirmación en caso de poder modificar el avatar. Devuelve un mensaje de error
+        en caso contrario.
+      operationId: modify_avatar
+      parameters:
+        - name: id_user
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: id_avatar
+          in: query
+          required: true
+          schema:
+            type: int
+      responses:
+        '200':
+          description: Avatar cambiado con éxito
+          content:
+            application/json:
+              schema:
+                type: string
+        default:
+          description: Error al cambiar avatar
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /profile/modify/formFicha/{username}:
+    get:
+      description: |
+        Se le pasa comos parámetros el identificador que se ha asociado a dicho usuario en el login y
+        el id de la nueva forma de ficha que quiere usar el usuario en cuestión, este útimo debe pertenecer a su lista de comprados.
+
+        Devuelve un mensaje de confirmación en caso de poder modificar la forma de ficha. Devuelve un mensaje de error
+        en caso contrario.
+      operationId: modify_formFicha
+      parameters:
+        - name: id_user
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: id_formFicha
+          in: query
+          required: true
+          schema:
+            type: int
+      responses:
+        '200':
+          description: Forma de ficha cambiada con éxito
+          content:
+            application/json:
+              schema:
+                type: string
+        default:
+          description: Error al cambiar forma de ficha
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /profile/modify/banner/{username}:
+    get:
+      description: |
+        Se le pasa comos parámetros el identificador que se ha asociado a dicho usuario en el login y
+        el id del nuevo banner que quiere usar el usuario en cuestión, este útimo debe pertenecer a su lista de comprados.
+
+        Devuelve un mensaje de confirmación en caso de poder modificar el banner. Devuelve un mensaje de error
+        en caso contrario.
+      operationId: modify_banner
+      parameters:
+        - name: id_user
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: id_banner
+          in: query
+          required: true
+          schema:
+            type: int
+      responses:
+        '200':
+          description: Banner cambiado con éxito
+          content:
+            application/json:
+              schema:
+                type: string
+        default:
+          description: Error al cambiar banner
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
 components:
   schemas:
     Error:
