@@ -10,7 +10,7 @@ servers:
   - url: https://unitrivia.com/beneapi
 paths:
   /login:
-    get:
+    post:
       description: |
         Se le pasa como parámetros el nombre de usuario y la contraseña en texto plano.
 
@@ -19,12 +19,12 @@ paths:
       operationId: login
       parameters:
         - name: username
-          in: query
+          in: header
           required: true
           schema:
             type: string
         - name: password
-          in: query
+          in: header
           required: true
           schema:
             type: string
@@ -43,7 +43,7 @@ paths:
                 $ref: '#/components/schemas/Error'
 
   /register:
-    get:
+    post:
       description: |
         Se le pasa comos parámetros el nombre de usuario, la contraseña en texto plano, el email
         la pregunta de seguridad y la respuesta a dicha presgunta.
@@ -52,30 +52,30 @@ paths:
       operationId: register
       parameters:
         - name: username
-          in: query
+          in: header
           required: true
           schema:
             type: string
         - name: password
-          in: query
+          in: header
           required: true
           schema:
             type: string
         - name: email
-            in: query
-            required: true
-            schema:
-              type: string
+          in: header
+          required: true
+          schema:
+            type: string
         - name: preg
-            in: query
-            required: true
-            schema:
-              type: string
+          in: header
+          required: true
+          schema:
+            type: string
         - name: res
-            in: query
-            required: true
-            schema:
-              type: string
+          in: header
+          required: true
+          schema:
+            type: string
       responses:
         '200':
           description: Usuario creado exitosamente
@@ -91,7 +91,7 @@ paths:
                 $ref: '#/components/schemas/Error'
 
   /profile/modify/password/{username}:
-    get:
+    post:
       description: |
         Se le pasa comos parámetros el nombre de usuario, la contraseña nueva en texto plano
         y la contraseña vieja o actual en texto plano
@@ -101,25 +101,20 @@ paths:
       operationId: modify_password
       parameters:
         - name: username
-          in: query
+          in: path
           required: true
           schema:
             type: string
         - name: new_password
-          in: query
+          in: header
           required: true
           schema:
             type: string
         - name: old_password
-            in: query
-            required: true
-            schema:
-              type: string
-        - name: res
-            in: query
-            required: true
-            schema:
-              type: string
+          in: header
+          required: true
+          schema:
+            type: string
       responses:
         '200':
           description: Contraseña cambiada exitosamente
@@ -135,7 +130,7 @@ paths:
                 $ref: '#/components/schemas/Error'
 
   /login/recover/password:
-    get:
+    post:
       description: |
         Se le pasa comos parámetros el nombre de usuario, la respuesta a la pregunta de seguridad y
         la contraseña nueva en texto plano.
@@ -146,25 +141,20 @@ paths:
       operationId: recover_password
       parameters:
         - name: username
-          in: query
+          in: header
           required: true
           schema:
             type: string
         - name: res
-          in: query
+          in: header
           required: true
           schema:
             type: string
         - name: new_password
-            in: query
-            required: true
-            schema:
-              type: string
-        - name: res
-            in: query
-            required: true
-            schema:
-              type: string
+          in: header
+          required: true
+          schema:
+            type: string
       responses:
         '200':
           description: Contraseña cambiada exitosamente
@@ -180,7 +170,7 @@ paths:
                 $ref: '#/components/schemas/Error'
 
   /login/recover/pregunta:
-    get:
+    post:
       description: |
         Se le pasa como parámetro el nombre de usuario.
 
@@ -189,7 +179,7 @@ paths:
       operationId: recover_preg
       parameters:
         - name: username
-          in: query
+          in: header
           required: true
           schema:
             type: string
@@ -208,7 +198,7 @@ paths:
                 $ref: '#/components/schemas/Error'
 
   /logAsGuest:
-    get:
+    post:
       description: |
         No es necesario el paso de ningún parámetro.
 
@@ -221,19 +211,19 @@ paths:
           content:
             application/json:
               schema:
-              type: string
+                type: string
 
   /profile/listaComprados/{username}:
-    get:
+    post:
       description: |
         Se le pasa como parámetros el identificador que se ha asociado a dicho usuario en el login.
 
         Devuelve una lista con los objetos comprados por dicho usuario. Devuelve un mensaje de error si 
         hay algún probema al recuperar dicha lista.
-      operationId: get_listaComprados
+      operationId: post_listaComprados
       parameters:
-        - name: id_user
-          in: query
+        - name: username
+          in: path
           required: true
           schema:
             type: string
@@ -243,7 +233,9 @@ paths:
           content:
             application/json:
               schema:
-                type: [ int ]
+                type: array
+                items:
+                  type: integer
         default:
           description: Error al obtener listado de objetos comprados
           content:
@@ -252,7 +244,7 @@ paths:
                 $ref: '#/components/schemas/Error'
 
   /profile/modify/avatar/{username}:
-    get:
+    post:
       description: |
         Se le pasa comos parámetros el identificador que se ha asociado a dicho usuario en el login y
         el id del nuevo avatar que quiere usar el usuario en cuestión, este útimo debe pertenecer a su lista de comprados.
@@ -261,16 +253,16 @@ paths:
         en caso contrario.
       operationId: modify_avatar
       parameters:
-        - name: id_user
-          in: query
+        - name: username
+          in: path
           required: true
           schema:
             type: string
         - name: id_avatar
-          in: query
+          in: header
           required: true
           schema:
-            type: int
+            type: integer
       responses:
         '200':
           description: Avatar cambiado con éxito
@@ -286,7 +278,7 @@ paths:
                 $ref: '#/components/schemas/Error'
 
   /profile/modify/formFicha/{username}:
-    get:
+    post:
       description: |
         Se le pasa comos parámetros el identificador que se ha asociado a dicho usuario en el login y
         el id de la nueva forma de ficha que quiere usar el usuario en cuestión, este útimo debe pertenecer a su lista de comprados.
@@ -295,16 +287,16 @@ paths:
         en caso contrario.
       operationId: modify_formFicha
       parameters:
-        - name: id_user
-          in: query
+        - name: username
+          in: path
           required: true
           schema:
             type: string
         - name: id_formFicha
-          in: query
+          in: header
           required: true
           schema:
-            type: int
+            type: integer
       responses:
         '200':
           description: Forma de ficha cambiada con éxito
@@ -320,7 +312,7 @@ paths:
                 $ref: '#/components/schemas/Error'
 
   /profile/modify/banner/{username}:
-    get:
+    post:
       description: |
         Se le pasa comos parámetros el identificador que se ha asociado a dicho usuario en el login y
         el id del nuevo banner que quiere usar el usuario en cuestión, este útimo debe pertenecer a su lista de comprados.
@@ -329,16 +321,16 @@ paths:
         en caso contrario.
       operationId: modify_banner
       parameters:
-        - name: id_user
-          in: query
+        - name: username
+          in: path
           required: true
           schema:
             type: string
         - name: id_banner
-          in: query
+          in: header
           required: true
           schema:
-            type: int
+            type: integer
       responses:
         '200':
           description: Banner cambiado con éxito
