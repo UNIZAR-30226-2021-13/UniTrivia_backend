@@ -7,7 +7,7 @@ info:
     name: MIT License
     url: https://opensource.org/licenses/mit-license.php
 servers:
-  - url: https://unitrivia.com/beneapi
+  - url: https://unitrivia.com/api
 paths:
   /login:
     post:
