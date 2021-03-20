@@ -90,7 +90,6 @@ typings/
 
 # Nuxt.js build / generate output
 .nuxt
-dist
 
 # Gatsby files
 .cache/
@@ -220,3 +219,8 @@ fabric.properties
 .idea/codestream.xml
 
 # End of https://www.toptal.com/developers/gitignore/api/webstorm,node
+/.idea/misc.xml
+/.idea/modules.xml
+/.idea/UniTrivia_backend.iml
+/.idea/vcs.xml
+/.idea/.gitignore

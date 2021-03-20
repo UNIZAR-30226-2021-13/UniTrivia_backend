@@ -1,11 +1,16 @@
-const express = require('express')
-const app = express()
-const port = 3000
+const config = require('./config');
+const logger = require('./logger');
+const ExpressServer = require('./expressServer');
 
-app.get('/', (req, res) => {
-    res.send('Hello World!')
-})
+const launchServer = async () => {
+  try {
+    this.expressServer = new ExpressServer(config.URL_PORT, config.OPENAPI_YAML);
+    this.expressServer.launch();
+    logger.info('Express server running');
+  } catch (error) {
+    logger.error('Express Server failure', error.message);
+    await this.close();
+  }
+};
 
-app.listen(port, () => {
-    console.log(`Example app listening at http://localhost:${port}`)
-})
+launchServer().catch(e => logger.error(e));

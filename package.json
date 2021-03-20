@@ -1,23 +1,43 @@
 {
-  "name": "unitrivia_backend",
+  "name": "unitrivia",
   "version": "1.0.0",
-  "description": "Backend del juego UniTrivia",
+  "description": "API to the game of UniTrivia",
   "main": "index.js",
-  "dependencies": {
-    "express": "^4.17.1"
-  },
-  "devDependencies": {},
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "prestart": "npm install",
+    "start": "node index.js"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/UNIZAR-30226-2021-13/UniTrivia_backend.git"
+  "keywords": [
+    "openapi-generator",
+    "openapi"
+  ],
+  "license": "Unlicense",
+  "private": true,
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "camelcase": "^5.3.1",
+    "cookie-parser": "^1.4.4",
+    "cors": "^2.8.5",
+    "express": "^4.16.4",
+    "express-openapi-validator": "^3.9.1",
+    "js-yaml": "^3.3.0",
+    "ono": "^5.0.1",
+    "openapi-sampler": "^1.0.0-beta.15",
+    "swagger-ui-express": "^4.0.2",
+    "winston": "^3.2.1"
   },
-  "author": "UniGames",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/UNIZAR-30226-2021-13/UniTrivia_backend/issues"
+  "devDependencies": {
+    "axios": "^0.21.1",
+    "chai": "^4.2.0",
+    "chai-as-promised": "^7.1.1",
+    "eslint": "^5.16.0",
+    "eslint-config-airbnb-base": "^14.0.0",
+    "eslint-plugin-import": "^2.17.2",
+    "mocha": "^7.1.1"
   },
-  "homepage": "https://github.com/UNIZAR-30226-2021-13/UniTrivia_backend#readme"
+  "eslintConfig": {
+    "env": {
+      "node": true
+    }
+  }
 }
