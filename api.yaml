@@ -11,6 +11,8 @@ servers:
 paths:
   /login:
     post:
+      tags:
+        - Usuario
       description: |
         Se le pasa como parámetros el nombre de usuario y la contraseña en texto plano.
 
@@ -44,6 +46,8 @@ paths:
 
   /register:
     post:
+      tags:
+        - Usuario
       description: |
         Se le pasa comos parámetros el nombre de usuario, la contraseña en texto plano, el email
         la pregunta de seguridad y la respuesta a dicha presgunta.
@@ -92,6 +96,8 @@ paths:
 
   /profile/modify/password/{username}:
     post:
+      tags:
+        - Usuario
       description: |
         Se le pasa comos parámetros el nombre de usuario, la contraseña nueva en texto plano
         y la contraseña vieja o actual en texto plano
@@ -131,6 +137,8 @@ paths:
 
   /login/recover/password:
     post:
+      tags:
+        - Usuario
       description: |
         Se le pasa comos parámetros el nombre de usuario, la respuesta a la pregunta de seguridad y
         la contraseña nueva en texto plano.
@@ -171,6 +179,8 @@ paths:
 
   /login/recover/pregunta:
     post:
+      tags:
+        - Usuario
       description: |
         Se le pasa como parámetro el nombre de usuario.
 
@@ -199,6 +209,8 @@ paths:
 
   /logAsGuest:
     post:
+      tags:
+        - Usuario
       description: |
         No es necesario el paso de ningún parámetro.
 
@@ -215,6 +227,8 @@ paths:
 
   /profile/listaComprados/{username}:
     post:
+      tags:
+        - Usuario
       description: |
         Se le pasa como parámetros el identificador que se ha asociado a dicho usuario en el login.
 
@@ -245,6 +259,8 @@ paths:
 
   /profile/modify/avatar/{username}:
     post:
+      tags:
+        - Usuario
       description: |
         Se le pasa comos parámetros el identificador que se ha asociado a dicho usuario en el login y
         el id del nuevo avatar que quiere usar el usuario en cuestión, este útimo debe pertenecer a su lista de comprados.
@@ -279,6 +295,8 @@ paths:
 
   /profile/modify/formFicha/{username}:
     post:
+      tags:
+        - Usuario
       description: |
         Se le pasa comos parámetros el identificador que se ha asociado a dicho usuario en el login y
         el id de la nueva forma de ficha que quiere usar el usuario en cuestión, este útimo debe pertenecer a su lista de comprados.
@@ -313,6 +331,8 @@ paths:
 
   /profile/modify/banner/{username}:
     post:
+      tags:
+        - Usuario
       description: |
         Se le pasa comos parámetros el identificador que se ha asociado a dicho usuario en el login y
         el id del nuevo banner que quiere usar el usuario en cuestión, este útimo debe pertenecer a su lista de comprados.
