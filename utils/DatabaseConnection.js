@@ -19,7 +19,7 @@ function terminar() {
  * @param email Email del usuario a crear
  * @param pregunta Pregunta de seguridad del usuario a crear.
  * @param respuesta Respuesta a la pregunta de seguridad para el usuario que se va a crear.
- * @returns {integer} 0 si ha podido insertar al usuario, 1 si existe el username y 2 error en la bd.
+ * @returns {number} 0 si ha podido insertar al usuario, 1 si existe el username y 2 error en la bd.
  */
 function registrar(username, hash, email, pregunta, respuesta){
     const usuario = {
@@ -29,8 +29,8 @@ function registrar(username, hash, email, pregunta, respuesta){
         preg: pregunta,
         res: respuesta
     }
-    usuarios = bd.collection("usuarios");
-    var ok = 0;
+    const usuarios = bd.collection("usuarios");
+    let ok = 0;
     try{
         res = usuarios.find({_id:username});
         res.count(true, {limit: 1}, function(err, count){
