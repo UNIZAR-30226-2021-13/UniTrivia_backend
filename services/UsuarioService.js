@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 const Service = require('./Service');
 const bcrypt = require('bcrypt')
-const bd = require("../utils/DatabaseConnection.js");
+const modelo = require("../model");
 
 /**
 * No es necesario el paso de ningún parámetro.  Devuelve el identificador temporal con el que identificar todas las operaciones relacionadas con el invitado. 
@@ -214,7 +214,7 @@ const register = ({ username, password, email, preg, res }) => new Promise(
           const salt = await bcrypt.genSalt(10);
           const hash = await bcrypt.hash(password, salt);
 
-          const num = bd.registrar(username,hash,email,preg, res);
+          const num = modelo.Usuarios.registrar(username,hash,email,preg, res);
           if(num === 0){
               resolve(Service.successResponse("OK", 200));
           }else if(num === 1){
