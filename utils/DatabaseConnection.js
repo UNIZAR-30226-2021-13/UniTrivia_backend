@@ -4,8 +4,12 @@ const logger = require('../logger');
 let cliente = null, bd = null;
 
 function iniciar(url = "mongodb://localhost:27017", nombreBD = "UniTrivia" ) {
-    cliente = new MongoClient.connect(url,{poolSize: 10, tls: false});
-    bd = cliente.db(nombreBD);
+    cliente = new MongoClient(url,{poolSize: 10, tls: false, useUnifiedTopology: true });
+    cliente.connect().then((cl) =>{
+        cliente = cl;
+        logger.info("Connected DB");
+        bd = cliente.db(nombreBD);
+    });
 }
 function terminar() {
     cliente.close();
@@ -29,9 +33,13 @@ function registrar(username, hash, email, pregunta, respuesta){
         preg: pregunta,
         res: respuesta
     }
-    const usuarios = bd.collection("usuarios");
     let ok = 0;
     try{
+        if(bd === null){
+            logger.error("bd is null");
+            return 2
+        }
+        const usuarios = bd.collection("usuarios");
         res = usuarios.find({_id:username});
         res.count(true, {limit: 1}, function(err, count){
             if(err){
@@ -52,6 +60,7 @@ function registrar(username, hash, email, pregunta, respuesta){
             }
         });
     }catch (err){
+        logger.error("Unknown error", err);
         return 2;
     }
     return ok;

@@ -1,5 +1,5 @@
-const DefaultController = require('./DefaultController');
+const UsuarioController = require('./UsuarioController');
 
 module.exports = {
-  DefaultController,
+  UsuarioController,
 };

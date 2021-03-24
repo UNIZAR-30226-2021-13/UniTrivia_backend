@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 const Service = require('./Service');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcrypt')
 const bd = require("../utils/DatabaseConnection.js");
 
 /**
@@ -209,24 +209,25 @@ const recover_preg = ({ username }) => new Promise(
 * */
 const register = ({ username, password, email, preg, res }) => new Promise(
   async (resolve, reject) => {
-    try {
-      const salt = await bcrypt.genSalt(10);
-      const hash = await bcrypt.hash(password, salt);
+      console.log("Entry")
+      try {
+          const salt = await bcrypt.genSalt(10);
+          const hash = await bcrypt.hash(password, salt);
 
-      const num = bd.registrar(username,hash,email,preg, res);
-      if(num === 0){
-          resolve(Service.successResponse("OK", 200));
-      }else if(num === 1){
-          reject(Service.rejectResponse({code: 1, message: "Usuario ya existente"},400));
-      }else{
-          reject(Service.rejectResponse({code: 0, message: "Error desconocido"},500));
+          const num = bd.registrar(username,hash,email,preg, res);
+          if(num === 0){
+              resolve(Service.successResponse("OK", 200));
+          }else if(num === 1){
+              reject(Service.rejectResponse({code: 1, message: "Usuario ya existente"},400));
+          }else{
+              reject(Service.rejectResponse({code: 0, message: "Error desconocido"},500));
+          }
+      } catch (e) {
+          reject(Service.rejectResponse(
+              e.message || 'Invalid input',
+              e.status || 405,
+          ));
       }
-    } catch (e) {
-      reject(Service.rejectResponse(
-        e.message || 'Invalid input',
-        e.status || 405,
-      ));
-    }
   },
 );
 

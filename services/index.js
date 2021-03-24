@@ -1,5 +1,5 @@
-const DefaultService = require('./DefaultService');
+const UsuarioService = require('./UsuarioService');
 
 module.exports = {
-  DefaultService,
+  UsuarioService,
 };
