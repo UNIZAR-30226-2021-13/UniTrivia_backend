@@ -1,4 +1,5 @@
 const MongoClient = require('mongodb').MongoClient;
+const bcrypt = require('bcrypt');
 const logger = require('../logger');
 
 let cliente = null, bd = null;
@@ -11,4 +12,35 @@ function terminar() {
     cliente.close();
 }
 
-module.exports = {iniciar, terminar};
+/***
+ * Función para validar el login de un usuario en el sistema.
+ *
+ * @param username Nombre de usuario a logear.
+ * @param password Contraseña del usuario a logear.
+ * @returns {integer} 0 si se valida correctamente el login, 1 si la contraseña o el usuario son incorrectos
+ *          ,2 si el usuario no existe y 3 si se produce un error en la bd.
+ */
+function logear(username, password){
+    usuarios = bd.collection("usuarios");
+    var ok = 0;
+    usuarios.findOne({ _id:username }, function(err, user) {
+        if(err){
+            logger.error("Error login: error en la BD.",err);
+            return 3;
+        }
+        if(!user) {
+            logger.error("Error login: no existe el usuario.",err);
+            return 2;
+        }
+
+        // Valida que la contraseña escrita por el usuario, sea la almacenada en la db
+        if (!bcrypt.compareSync(password, user.password)) {
+            logger.error("Error login: usuario o contraseña incorrectos.",err);
+            return 1;
+        }
+    });
+
+    return ok;
+}
+
+module.exports = {iniciar, terminar, logear};
