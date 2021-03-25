@@ -1,55 +1,75 @@
-const db = require('../utils/DatabaseConnection.js')
+const db = require('../utils/DatabaseConnection.js');
+const logger = require("../logger");
+const JWT = require("jsonwebtoken");
+const config = require("../config");
+const bcrypt = require("bcrypt");
+const {ObjectId} = require("mongodb");
 
-/***
- * Función para crear un usuario en la base de datos inicializada anteriormente.
+/* Simplemente hay que copiar esta función en el modelo global */
+/**
+ * Función para validar la respuesta dada del usuario en cuestion
  *
- * @param username Nombre de usuario a crear.
- * @param hash Hash de la contraseña del usuario a crear.
- * @param email Email del usuario a crear
- * @param pregunta Pregunta de seguridad del usuario a crear.
- * @param respuesta Respuesta a la pregunta de seguridad para el usuario que se va a crear.
- * @returns {number} 0 si ha podido insertar al usuario, 1 si existe el username y 2 error en la bd.
+ * @param token Token de sesión del usuario
+ * @param res Respuesta dada
+ * @return {number} 0 si la respuesta es correcta, 1 si es incorrecta, 2 si error
+ *          en la base de datos y 3 si acceso no autorizado
  */
-function registrar(username, hash, email, pregunta, respuesta){
-    const usuario = {
-        _id: username,
-        mail: email,
-        hash: hash,
-        preg: pregunta,
-        res: respuesta
-    }
+async function validar_respuesta(token, res){
     let ok = 0;
-    const bd = db.getBD();
+
+    try{
+        const usuarios = db.getBD().collection("usuarios");
+        const obj = validarToken(token);
+        if( obj ){
+            const user = await usuarios.findOne({_id: obj.user});
+
+
+            if( res.toUpperCase() === user.res.toUpperCase() ){
+                ok = 0;
+            }else{
+                ok = 1;
+            }
+        }else{
+            logger.error("Usuario no identificado");
+            ok = 3;
+        }
+    }catch(e){
+        logger.error("Error al validar respuesta: error en la BD.", e);
+        ok = 2;
+    }
+
+    return ok;
+    /*let ok = 0;
+
     try{
         if(bd === null){
             logger.error("bd is null");
-            return 2
+            return 2;
         }
         const usuarios = bd.collection("usuarios");
-        res = usuarios.find({_id:username});
-        res.count(true, {limit: 1}, function(err, count){
-            if(err){
-                ok = 2;
-                logger.error("Error creando un usuario.",err);
+        usuarios.findOne({ _id:username }, function(err, user){
+            if( err ){
+                logger.error("Error validar_respuesta: error en la BD.", err);
+                return 2;
+            }
+            if( !user ){
+                logger.error("Error validar_respuesta: no existe el usuario.", err);
+                return 2;
+            }
+
+            if( res.toUpperCase() === user.res.toUpperCase() ){
+                ok = 0;
             }else{
-                if(count === 0){
-                    usuarios.insertOne(usuario, function(err, res){
-                        if(err){
-                            ok = false;
-                            logger.error("Error creando un usuario.",err);
-                        }
-                        logger.info("Usuario "+username+" creado correctamente");
-                    });
-                }else{
-                    ok = 1;
-                }
+                ok = 1;
             }
         });
+
     }catch (err){
         logger.error("Unknown error", err);
         return 2;
     }
-    return ok;
+
+    return ok;*/
 }
 
-module.exports = {registrar}
+module.exports = {registrar, obtener_Pregunta, lista_comprados, validar_respuesta}
