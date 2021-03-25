@@ -3,7 +3,7 @@
 - NodeJS >= 10.6
 - NPM >= 6.10.0
 
-##Instalar dependencias con:
+### Instalar dependencias con:
 ```
 npm install .
 ```
@@ -15,7 +15,7 @@ npm run
 
 ### Tests
 Actualmente no hay ningún test unitario, se realizarán en el futuro.
-Pese a ello, contiene todo lo necesario para crearlos y ejecutarlos - 
+Pese a ello, contiene todo lo necesario para crearlos y ejecutarlos -
 mocha, sinon y las librarias necesarias están incluidas en package.js.
 
 

@@ -1,0 +1,419 @@
+openapi: 3.0.3
+info:
+  description: API to the game of UniTrivia
+  license:
+    name: MIT License
+    url: https://opensource.org/licenses/mit-license.php
+  title: UniTrivia
+  version: 1.0.0
+servers:
+- url: https://unitrivia.com/api
+paths:
+  /login:
+    post:
+      description: |
+        Se le pasa como parámetros el nombre de usuario y la contraseña en texto plano.
+
+        Devuelve el identificador temporal con el que identificar todas las operaciones
+        relacionadas con el usuario y un error en caso de no poder identificarlo.
+      operationId: login
+      parameters:
+      - explode: false
+        in: header
+        name: username
+        required: true
+        schema:
+          type: string
+        style: simple
+      - explode: false
+        in: header
+        name: password
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: Login realizado exitosamente
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Error en el login
+      tags:
+      - Usuario
+      x-eov-operation-handler: controllers/UsuarioController
+  /register:
+    post:
+      description: |
+        Se le pasa comos parámetros el nombre de usuario, la contraseña en texto plano, el email
+        la pregunta de seguridad y la respuesta a dicha presgunta.
+
+        Devuelve un mensaje de confirmación de caso de poder crear el usuario y un error en caso de no poder crearlo.
+      operationId: register
+      parameters:
+      - explode: false
+        in: header
+        name: username
+        required: true
+        schema:
+          type: string
+        style: simple
+      - explode: false
+        in: header
+        name: password
+        required: true
+        schema:
+          type: string
+        style: simple
+      - explode: false
+        in: header
+        name: email
+        required: true
+        schema:
+          type: string
+        style: simple
+      - explode: false
+        in: header
+        name: preg
+        required: true
+        schema:
+          type: string
+        style: simple
+      - explode: false
+        in: header
+        name: res
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: Usuario creado exitosamente
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Error en el registro
+      tags:
+      - Usuario
+      x-eov-operation-handler: controllers/UsuarioController
+  /profile/modify/password/{username}:
+    post:
+      description: |
+        Se le pasa comos parámetros el nombre de usuario, la contraseña nueva en texto plano
+        y la contraseña vieja o actual en texto plano
+
+        Devuelve un mensaje de confirmación de caso de poder modificar la contraseña y
+        un error en caso de error.
+      operationId: modify_password
+      parameters:
+      - explode: false
+        in: path
+        name: username
+        required: true
+        schema:
+          type: string
+        style: simple
+      - explode: false
+        in: header
+        name: new_password
+        required: true
+        schema:
+          type: string
+        style: simple
+      - explode: false
+        in: header
+        name: old_password
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: Contraseña cambiada exitosamente
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Error al cambiar contraseña
+      tags:
+      - Usuario
+      x-eov-operation-handler: controllers/UsuarioController
+  /login/recover/password:
+    post:
+      description: |
+        Se le pasa comos parámetros el nombre de usuario, la respuesta a la pregunta de seguridad y
+        la contraseña nueva en texto plano.
+
+        Devuelve un mensaje de confirmación de caso de que la respuesta coincida con la proporcionda y se
+        ha podido poder modificar la contraseña. Devuelve error en caso contrario.
+      operationId: recover_password
+      parameters:
+      - explode: false
+        in: header
+        name: username
+        required: true
+        schema:
+          type: string
+        style: simple
+      - explode: false
+        in: header
+        name: res
+        required: true
+        schema:
+          type: string
+        style: simple
+      - explode: false
+        in: header
+        name: new_password
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: Contraseña cambiada exitosamente
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Error al cambiar contraseña
+      tags:
+      - Usuario
+      x-eov-operation-handler: controllers/UsuarioController
+  /login/recover/pregunta:
+    post:
+      description: |
+        Se le pasa como parámetro el nombre de usuario.
+
+        Devuelve la pregunta de seguridad del usuario. Devuelve error en caso de no poder recuperar la pregunta.
+      operationId: recover_preg
+      parameters:
+      - explode: false
+        in: header
+        name: username
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: Pregunta recuperada exitosamente
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Error al recuperar pregunta contraseña
+      tags:
+      - Usuario
+      x-eov-operation-handler: controllers/UsuarioController
+  /logAsGuest:
+    post:
+      description: |
+        No es necesario el paso de ningún parámetro.
+
+        Devuelve el identificador temporal con el que identificar todas las operaciones
+        relacionadas con el invitado.
+      operationId: log_as_guest
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: string
+          description: Se le devuelve el identificador asignado
+      tags:
+      - Usuario
+      x-eov-operation-handler: controllers/UsuarioController
+  /profile/listaComprados/{username}:
+    post:
+      description: "Se le pasa como parámetros el identificador que se ha asociado\
+        \ a dicho usuario en el login.\n\nDevuelve una lista con los objetos comprados\
+        \ por dicho usuario. Devuelve un mensaje de error si \nhay algún probema al\
+        \ recuperar dicha lista.\n"
+      operationId: post_listaComprados
+      parameters:
+      - explode: false
+        in: path
+        name: username
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  type: integer
+                type: array
+          description: Lista de objetos comprados por dicho usuario
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Error al obtener listado de objetos comprados
+      tags:
+      - Usuario
+      x-eov-operation-handler: controllers/UsuarioController
+  /profile/modify/avatar/{username}:
+    post:
+      description: |
+        Se le pasa comos parámetros el identificador que se ha asociado a dicho usuario en el login y
+        el id del nuevo avatar que quiere usar el usuario en cuestión, este útimo debe pertenecer a su lista de comprados.
+
+        Devuelve un mensaje de confirmación en caso de poder modificar el avatar. Devuelve un mensaje de error
+        en caso contrario.
+      operationId: modify_avatar
+      parameters:
+      - explode: false
+        in: path
+        name: username
+        required: true
+        schema:
+          type: string
+        style: simple
+      - explode: false
+        in: header
+        name: id_avatar
+        required: true
+        schema:
+          type: integer
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: Avatar cambiado con éxito
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Error al cambiar avatar
+      tags:
+      - Usuario
+      x-eov-operation-handler: controllers/UsuarioController
+  /profile/modify/formFicha/{username}:
+    post:
+      description: |
+        Se le pasa comos parámetros el identificador que se ha asociado a dicho usuario en el login y
+        el id de la nueva forma de ficha que quiere usar el usuario en cuestión, este útimo debe pertenecer a su lista de comprados.
+
+        Devuelve un mensaje de confirmación en caso de poder modificar la forma de ficha. Devuelve un mensaje de error
+        en caso contrario.
+      operationId: modify_formFicha
+      parameters:
+      - explode: false
+        in: path
+        name: username
+        required: true
+        schema:
+          type: string
+        style: simple
+      - explode: false
+        in: header
+        name: id_formFicha
+        required: true
+        schema:
+          type: integer
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: Forma de ficha cambiada con éxito
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Error al cambiar forma de ficha
+      tags:
+      - Usuario
+      x-eov-operation-handler: controllers/UsuarioController
+  /profile/modify/banner/{username}:
+    post:
+      description: |
+        Se le pasa comos parámetros el identificador que se ha asociado a dicho usuario en el login y
+        el id del nuevo banner que quiere usar el usuario en cuestión, este útimo debe pertenecer a su lista de comprados.
+
+        Devuelve un mensaje de confirmación en caso de poder modificar el banner. Devuelve un mensaje de error
+        en caso contrario.
+      operationId: modify_banner
+      parameters:
+      - explode: false
+        in: path
+        name: username
+        required: true
+        schema:
+          type: string
+        style: simple
+      - explode: false
+        in: header
+        name: id_banner
+        required: true
+        schema:
+          type: integer
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: Banner cambiado con éxito
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Error al cambiar banner
+      tags:
+      - Usuario
+      x-eov-operation-handler: controllers/UsuarioController
+components:
+  schemas:
+    Error:
+      properties:
+        code:
+          format: int32
+          type: integer
+        message:
+          type: string
+      required:
+      - code
+      - message
+      type: object

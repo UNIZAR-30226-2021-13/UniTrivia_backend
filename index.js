@@ -1,7 +1,7 @@
 const config = require('./config');
 const logger = require('./logger');
 const ExpressServer = require('./expressServer');
-const bd = require('./util/DatabaseConnection.js');
+const bd = require('./utils/DatabaseConnection.js');
 
 const launchServer = async () => {
   try{
@@ -9,6 +9,7 @@ const launchServer = async () => {
     logger.info("Pool Connection initialized");
   }catch (err){
     logger.error("Cannot initialize Pool Connection", err.message)
+    await this.close();
   }
   try {
     this.expressServer = new ExpressServer(config.URL_PORT, config.OPENAPI_YAML);
