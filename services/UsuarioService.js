@@ -142,9 +142,15 @@ const modify_password = ({ username, newUnderscorepassword, oldUnderscorepasswor
 const post_listaComprados = ({ username }) => new Promise(
   async (resolve, reject) => {
     try {
-      resolve(Service.successResponse({
-        username,
-      }));
+        const listCompr = modelo.Usuarios.lista_comprados(username); //se que da error, pero ahi sera donde se situe la funcion eventualmente
+
+        if( listCompr[0] === -1){
+            reject(Service.rejectResponse({code: 0, message: "Error en la bd"},500));
+        }else if ( listCompr[0] === -2 ){
+            reject(Service.rejectResponse({code: 1, message: "Usuario no existe"},400));
+        }else{
+            resolve(Service.successResponse(listCompr,200));
+        }
     } catch (e) {
       reject(Service.rejectResponse(
         e.message || 'Invalid input',
@@ -185,17 +191,24 @@ const recover_password = ({ username, res, newUnderscorepassword }) => new Promi
 * */
 const recover_preg = ({ username }) => new Promise(
   async (resolve, reject) => {
-    try {
-      resolve(Service.successResponse({
-        username,
-      }));
-    } catch (e) {
-      reject(Service.rejectResponse(
-        e.message || 'Invalid input',
-        e.status || 405,
-      ));
-    }
-  },
+      console.log("Entry");
+      try {
+
+          const pregunta = modelo.Usuarios.obtener_Pregunta(username); //se que da error, pero ahi sera donde se situe la funcion eventualmente
+
+          if( pregunta.lenght === 0){
+              resolve(Service.successResponse(pregunta,200));
+          }else{
+              reject(Service.rejectResponse({code: 0, message: "Error al obtener pregunta"}, 400))
+          }
+
+        } catch (e) {
+          reject(Service.rejectResponse(
+            e.message || 'Invalid input',
+            e.status || 405,
+          ));
+        }
+      },
 );
 /**
 * Se le pasa comos parámetros el nombre de usuario, la contraseña en texto plano, el email la pregunta de seguridad y la respuesta a dicha presgunta.  Devuelve un mensaje de confirmación de caso de poder crear el usuario y un error en caso de no poder crearlo. 
