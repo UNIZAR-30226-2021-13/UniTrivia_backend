@@ -34,7 +34,7 @@ function logear(username, password){
         }
 
         // Valida que la contraseña escrita por el usuario, sea la almacenada en la db
-        if (!bcrypt.compareSync(password, user.password)) {
+        if (!bcrypt.compareSync(password, user.hash)) {
             logger.error("Error login: usuario o contraseña incorrectos.",err);
             return 1;
         }
@@ -43,4 +43,48 @@ function logear(username, password){
     return ok;
 }
 
-module.exports = {iniciar, terminar, logear};
+/***
+ * Función para modificar el banner de un usuario.
+ *
+ * @param username Nombre de usuario a modificar sus datos.
+ * @param id_banner Identificador del bannera asociar al usuario.
+ * @returns {integer} 0 si actualiza el banner, 1 en caso de error en la BD
+ */
+function modificar_banner(username, id_banner){
+    usuarios = bd.collection("usuarios");
+    var ok = 0;
+    usuarios.updateOne({ _id:username }, {$set: {bnr: id_banner}}, function(err, result) {
+        if(err){
+            logger.error("Error update banner: error en la BD.", err);
+            return 1;
+        }
+
+    });
+
+    return ok;
+}
+
+
+/***
+ * Función para modificar la forma de ficha de un usuario.
+ *
+ * @param username Nombre de usuario a modificar sus datos.
+ * @param id_ficha Identificador de la forma de ficha a asociar al usuario.
+ * @returns {integer} 0 si actualiza la forma de la ficha, 1 en caso de error en la BD
+ */
+function modificar_ficha(username, id_ficha){
+    usuarios = bd.collection("usuarios");
+    var ok = 0;
+    usuarios.updateOne({ _id:username }, {$set: {fich: id_ficha}}, function(err, result) {
+        if(err){
+            logger.error("Error update forma de la ficha: error en la BD.", err);
+            return 1;
+        }
+
+    });
+
+    return ok;
+}
+
+
+module.exports = {iniciar, terminar, logear, modificar_banner, modificar_ficha};
