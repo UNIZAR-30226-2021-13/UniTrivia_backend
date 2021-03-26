@@ -1,5 +1,6 @@
 const db = require('../utils/DatabaseConnection.js')
 const logger = require("../logger");
+const bcrypt = require('bcrypt');
 
 /***
  * Función para crear un usuario en la base de datos inicializada anteriormente.
@@ -58,29 +59,38 @@ function registrar(username, hash, email, pregunta, respuesta){
  *
  * @param username Nombre de usuario a logear.
  * @param password Contraseña del usuario a logear.
- * @returns {number} 0 si se valida correctamente el login, 1 si la contraseña o el usuario son incorrectos
- *          ,2 si el usuario no existe y 3 si se produce un error en la bd.
+ * @returns {code: numbre, id: string} 0 si se valida correctamente el login, 1 si la contraseña o el
+ *          usuario son incorrectos ,2 si el usuario no existe y 3 si se produce un error en la bd.
  */
 function logear(username, password){
     const usuarios = db.getBD().collection("usuarios");
-    usuarios.findOne({ _id:username }, function(err, user) {
-        if(err){
-            logger.error("Error login: error en la BD.",err);
-            return {code: 3, id: ""};
-        }
-        if(!user) {
-            logger.error("Error login: no existe el usuario.",err);
-            return {code: 2, id: ""};
-        }
+    let code = -1;
+    let id = "Error desconocido";
 
-        // Valida que la contraseña escrita por el usuario, sea la almacenada en la db
-        if (!bcrypt.compareSync(password, user.hash)) {
-            logger.error("Error login: usuario o contraseña incorrectos.",err);
-            return {code: 1, id: ""};
-        }
+    try {
+        usuarios.findOne({_id: username}, function (err, user) {
+            if (err) {
 
-        return {code: 0, id: user._id};
-    });
+            } else if (!user) {
+                logger.error("Error login: no existe el usuario.", err);
+                code = 2;
+                id = "Error login: no existe el usuario.";
+            } else if (!bcrypt.compareSync(password, user.hash)) {
+                logger.error("Error login: usuario o contraseña incorrectos.", err);
+                code = 1;
+                id = "Error login: usuario o contraseña incorrectos.";
+            } else {
+                code = 0;
+                id = user._id;
+            }
+        });
+    } catch(e){
+        logger.error("Error login: error en la BD.", err);
+        code = 3;
+        id = "Error login: error en la BD.";
+    }
+
+    return {code: code, id: id};
 
 }
 

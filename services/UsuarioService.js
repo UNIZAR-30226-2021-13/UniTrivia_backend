@@ -32,19 +32,26 @@ const log_as_guest = () => new Promise(
 * */
 const login = ({ username, password }) => new Promise(
   async (resolve, reject) => {
+      console.log("Entry")
     try {
-        const result = modelo.Usuarios.logear(username, password);
-        switch(result.code){
+        const {code, id} = modelo.Usuarios.logear(username, password);
+        console.log(code)
+        console.log(id)
+        switch(code){
             case 0:
-                resolve(Service.successResponse(result.id, 200));
+                console.log("Entra 0")
+                resolve(Service.successResponse(id, 200));
                 break;
             case 1:
+                console.log("Entra 1")
                 reject(Service.rejectResponse({code: 1, message: "Usuario o contraseña incorrectos"},400));
                 break;
             case 2:
+                console.log("Entra 2")
                 reject(Service.rejectResponse({code: 2, message: "No existe el usuario"},400));
                 break;
             case 3:
+                console.log("Entra 3")
                 reject(Service.rejectResponse({code: 3, message: "Error en la BD"},400));
                 break;
             default:
@@ -52,6 +59,7 @@ const login = ({ username, password }) => new Promise(
 
         }
     } catch (e) {
+        console.log("Entry pocho")
       reject(Service.rejectResponse(
         e.message || 'Invalid input',
         e.status || 405,
