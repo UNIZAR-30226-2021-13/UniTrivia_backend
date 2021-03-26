@@ -22,7 +22,9 @@ const log_as_guest = () => new Promise(
   },
 );
 /**
-* Se le pasa como parámetros el nombre de usuario y la contraseña en texto plano.  Devuelve el identificador temporal con el que identificar todas las operaciones relacionadas con el usuario y un error en caso de no poder identificarlo. 
+* Se le pasa como parámetros el nombre de usuario y la contraseña en texto plano.
+ * Devuelve el identificadortemporal con el que identificar todas las operaciones relacionadas con el usuario
+ * y un error en caso de no poder identificarlo.
 *
 * username String 
 * password String 
@@ -31,10 +33,24 @@ const log_as_guest = () => new Promise(
 const login = ({ username, password }) => new Promise(
   async (resolve, reject) => {
     try {
-      resolve(Service.successResponse({
-        username,
-        password,
-      }));
+        const result = modelo.Usuarios.logear(username, password);
+        switch(result.code){
+            case 0:
+                resolve(Service.successResponse(result.id, 200));
+                break;
+            case 1:
+                reject(Service.rejectResponse({code: 1, message: "Usuario o contraseña incorrectos"},400));
+                break;
+            case 2:
+                reject(Service.rejectResponse({code: 2, message: "No existe el usuario"},400));
+                break;
+            case 3:
+                reject(Service.rejectResponse({code: 3, message: "Error en la BD"},400));
+                break;
+            default:
+                reject(Service.rejectResponse({code: -1, message: "Error desconocido"},500));
+
+        }
     } catch (e) {
       reject(Service.rejectResponse(
         e.message || 'Invalid input',
@@ -75,10 +91,18 @@ const modify_avatar = ({ username, idUnderscoreavatar }) => new Promise(
 const modify_banner = ({ username, idUnderscorebanner }) => new Promise(
   async (resolve, reject) => {
     try {
-      resolve(Service.successResponse({
-        username,
-        idUnderscorebanner,
-      }));
+        const result = modelo.Usuarios.modificar_banner(username, idUnderscorebanner);
+        switch(result){
+            case 0:
+                resolve(Service.successResponse("OK", 200));
+                break;
+            case 1:
+                reject(Service.rejectResponse({code: 1, message: "Error en la BD"},400));
+                break;
+            default:
+                reject(Service.rejectResponse({code: -1, message: "Error desconocido"},500));
+
+        }
     } catch (e) {
       reject(Service.rejectResponse(
         e.message || 'Invalid input',
@@ -97,10 +121,18 @@ const modify_banner = ({ username, idUnderscorebanner }) => new Promise(
 const modify_formFicha = ({ username, idUnderscoreformFicha }) => new Promise(
   async (resolve, reject) => {
     try {
-      resolve(Service.successResponse({
-        username,
-        idUnderscoreformFicha,
-      }));
+        const result = modelo.Usuarios.modificar_ficha(username, idUnderscoreformFicha);
+        switch(result){
+            case 0:
+                resolve(Service.successResponse("OK", 200));
+                break;
+            case 1:
+                reject(Service.rejectResponse({code: 1, message: "Error en la BD"},400));
+                break;
+            default:
+                reject(Service.rejectResponse({code: -1, message: "Error desconocido"},500));
+
+        }
     } catch (e) {
       reject(Service.rejectResponse(
         e.message || 'Invalid input',

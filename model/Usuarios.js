@@ -1,4 +1,5 @@
 const db = require('../utils/DatabaseConnection.js')
+const logger = require("../logger");
 
 /***
  * Función para crear un usuario en la base de datos inicializada anteriormente.
@@ -57,30 +58,30 @@ function registrar(username, hash, email, pregunta, respuesta){
  *
  * @param username Nombre de usuario a logear.
  * @param password Contraseña del usuario a logear.
- * @returns {integer} 0 si se valida correctamente el login, 1 si la contraseña o el usuario son incorrectos
+ * @returns {number} 0 si se valida correctamente el login, 1 si la contraseña o el usuario son incorrectos
  *          ,2 si el usuario no existe y 3 si se produce un error en la bd.
  */
 function logear(username, password){
-    usuarios = bd.collection("usuarios");
-    var ok = 0;
+    const usuarios = db.getBD().collection("usuarios");
     usuarios.findOne({ _id:username }, function(err, user) {
         if(err){
             logger.error("Error login: error en la BD.",err);
-            return 3;
+            return {code: 3, id: ""};
         }
         if(!user) {
             logger.error("Error login: no existe el usuario.",err);
-            return 2;
+            return {code: 2, id: ""};
         }
 
         // Valida que la contraseña escrita por el usuario, sea la almacenada en la db
         if (!bcrypt.compareSync(password, user.hash)) {
             logger.error("Error login: usuario o contraseña incorrectos.",err);
-            return 1;
+            return {code: 1, id: ""};
         }
+
+        return {code: 0, id: user._id};
     });
 
-    return ok;
 }
 
 /***
@@ -88,11 +89,10 @@ function logear(username, password){
  *
  * @param username Nombre de usuario a modificar sus datos.
  * @param id_banner Identificador del bannera asociar al usuario.
- * @returns {integer} 0 si actualiza el banner, 1 en caso de error en la BD
+ * @returns {number} 0 si actualiza el banner, 1 en caso de error en la BD
  */
 function modificar_banner(username, id_banner){
-    usuarios = bd.collection("usuarios");
-    var ok = 0;
+    const usuarios = db.getBD().collection("usuarios");
     usuarios.updateOne({ _id:username }, {$set: {bnr: id_banner}}, function(err, result) {
         if(err){
             logger.error("Error update banner: error en la BD.", err);
@@ -101,7 +101,7 @@ function modificar_banner(username, id_banner){
 
     });
 
-    return ok;
+    return 0;
 }
 
 
@@ -110,11 +110,10 @@ function modificar_banner(username, id_banner){
  *
  * @param username Nombre de usuario a modificar sus datos.
  * @param id_ficha Identificador de la forma de ficha a asociar al usuario.
- * @returns {integer} 0 si actualiza la forma de la ficha, 1 en caso de error en la BD
+ * @returns {number} 0 si actualiza la forma de la ficha, 1 en caso de error en la BD
  */
 function modificar_ficha(username, id_ficha){
-    usuarios = bd.collection("usuarios");
-    var ok = 0;
+    const usuarios = db.getBD().collection("usuarios");
     usuarios.updateOne({ _id:username }, {$set: {fich: id_ficha}}, function(err, result) {
         if (err) {
             logger.error("Error update forma de la ficha: error en la BD.", err);
@@ -123,7 +122,7 @@ function modificar_ficha(username, id_ficha){
 
     });
 
-    return ok;
+    return 0;
 }
 
 module.exports = {registrar, logear, modificar_ficha, modificar_banner}
