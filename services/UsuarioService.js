@@ -34,7 +34,7 @@ const login = ({ username, password }) => new Promise(
   async (resolve, reject) => {
       console.log("Entry")
     try {
-        const {code, id} = modelo.Usuarios.logear(username, password);
+        const {code, id} = await modelo.Usuarios.logear(username, password);
         console.log(code)
         console.log(id)
         switch(code){

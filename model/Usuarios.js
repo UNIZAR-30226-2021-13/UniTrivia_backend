@@ -62,35 +62,70 @@ function registrar(username, hash, email, pregunta, respuesta){
  * @returns {code: numbre, id: string} 0 si se valida correctamente el login, 1 si la contraseña o el
  *          usuario son incorrectos ,2 si el usuario no existe y 3 si se produce un error en la bd.
  */
+/*
 function logear(username, password){
     const usuarios = db.getBD().collection("usuarios");
     let code = -1;
     let id = "Error desconocido";
 
-    try {
-        usuarios.findOne({_id: username}, function (err, user) {
-            if (err) {
-
-            } else if (!user) {
-                logger.error("Error login: no existe el usuario.", err);
-                code = 2;
-                id = "Error login: no existe el usuario.";
-            } else if (!bcrypt.compareSync(password, user.hash)) {
-                logger.error("Error login: usuario o contraseña incorrectos.", err);
-                code = 1;
-                id = "Error login: usuario o contraseña incorrectos.";
-            } else {
-                code = 0;
-                id = user._id;
-            }
+    const result = ({ username, password }) => new Promise(
+        async (resolve, reject) => {
+            usuarios.findOne({_id: username})
+                .then( user => {
+                    if (!user) {
+                        logger.error("Error login: no existe el usuario.");
+                        code = 2;
+                        id = "Error login: no existe el usuario.";
+                    } else if (!bcrypt.compareSync(password, user.hash)) {
+                        logger.error("Error login: usuario o contraseña incorrectos.");
+                        code = 1;
+                        id = "Error login: usuario o contraseña incorrectos.";
+                    } else {
+                        code = 0;
+                        id = user._id;
+                    }
+                    console.log({code: code, id: id})
+                    resolve({code: code, id: id});
+                },
+                err => logger.error("Error login: error en la BD.", err))
+                .catch(e => logger.error("Error login: error desconocido.", e));
         });
-    } catch(e){
-        logger.error("Error login: error en la BD.", err);
-        code = 3;
-        id = "Error login: error en la BD.";
+
+    console.log(result);
+    if(!result){
+        return {code: code, id: id};
+    } else{
+        return result;
     }
 
-    return {code: code, id: id};
+}
+*/
+
+async function logear(username, password){
+    const usuarios = db.getBD().collection("usuarios");
+    let code = -1;
+    let id = "Error desconocido";
+
+    try {
+        const user = await usuarios.findOne({_id: username});
+        if (!user) {
+            logger.error("Error login: no existe el usuario.");
+            code = 2;
+            id = "Error login: no existe el usuario.";
+        } else if (!bcrypt.compareSync(password, user.hash)) {
+            logger.error("Error login: usuario o contraseña incorrectos.");
+            code = 1;
+            id = "Error login: usuario o contraseña incorrectos.";
+        } else {
+            code = 0;
+            id = user._id;
+        }
+        console.log({code: code, id: id})
+        return {code: code, id: id};
+
+    } catch(e) {
+        logger.error("Error login: error desconocido.", e);
+    }
 
 }
 
