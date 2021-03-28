@@ -1,6 +1,7 @@
 const db = require('../utils/DatabaseConnection.js')
 const logger = require("../logger");
 const bcrypt = require('bcrypt');
+const {ObjectId} = require('mongodb');
 
 /***
  * Función para crear un usuario en la base de datos inicializada anteriormente.
@@ -102,11 +103,11 @@ function logear(username, password){
 */
 
 async function logear(username, password){
-    const usuarios = db.getBD().collection("usuarios");
-    let code = -1;
-    let id = "Error desconocido";
+    let code = 3;
+    let id = "Error en la BD";
 
     try {
+        const usuarios = db.getBD().collection("usuarios");
         const user = await usuarios.findOne({_id: username});
         if (!user) {
             logger.error("Error login: no existe el usuario.");
@@ -125,6 +126,7 @@ async function logear(username, password){
 
     } catch(e) {
         logger.error("Error login: error desconocido.", e);
+        return {code: code, id: id};
     }
 
 }
@@ -136,17 +138,17 @@ async function logear(username, password){
  * @param id_banner Identificador del bannera asociar al usuario.
  * @returns {number} 0 si actualiza el banner, 1 en caso de error en la BD
  */
-function modificar_banner(username, id_banner){
-    const usuarios = db.getBD().collection("usuarios");
-    usuarios.updateOne({ _id:username }, {$set: {bnr: id_banner}}, function(err, result) {
-        if(err){
-            logger.error("Error update banner: error en la BD.", err);
-            return 1;
-        }
+async function modificar_banner(username, id_banner){
+    try {
+        const usuarios = db.getBD().collection("usuarios");
+        const result = await usuarios.updateOne({ _id:username }, {$set: {bnr: ObjectId(id_banner)}});
+        return 0;
 
-    });
+    } catch(e) {
+        logger.error("Error update banner: error en la BD.", e);
+        return 1;
+    }
 
-    return 0;
 }
 
 
@@ -157,17 +159,16 @@ function modificar_banner(username, id_banner){
  * @param id_ficha Identificador de la forma de ficha a asociar al usuario.
  * @returns {number} 0 si actualiza la forma de la ficha, 1 en caso de error en la BD
  */
-function modificar_ficha(username, id_ficha){
-    const usuarios = db.getBD().collection("usuarios");
-    usuarios.updateOne({ _id:username }, {$set: {fich: id_ficha}}, function(err, result) {
-        if (err) {
-            logger.error("Error update forma de la ficha: error en la BD.", err);
-            return 1;
-        }
+async function modificar_ficha(username, id_ficha){
+    try {
+        const usuarios = db.getBD().collection("usuarios");
+        const result = await usuarios.updateOne({ _id:username }, {$set: {fich: ObjectId(id_ficha)}});
+        return 0;
 
-    });
-
-    return 0;
+    } catch(e) {
+        logger.error("Error update forma de la ficha: error en la BD.", e);
+        return 1;
+    }
 }
 
 module.exports = {registrar, logear, modificar_ficha, modificar_banner}

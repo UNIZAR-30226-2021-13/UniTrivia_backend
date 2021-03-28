@@ -99,7 +99,7 @@ const modify_avatar = ({ username, idUnderscoreavatar }) => new Promise(
 const modify_banner = ({ username, idUnderscorebanner }) => new Promise(
   async (resolve, reject) => {
     try {
-        const result = modelo.Usuarios.modificar_banner(username, idUnderscorebanner);
+        const result = await modelo.Usuarios.modificar_banner(username, idUnderscorebanner);
         switch(result){
             case 0:
                 resolve(Service.successResponse("OK", 200));
@@ -129,7 +129,7 @@ const modify_banner = ({ username, idUnderscorebanner }) => new Promise(
 const modify_formFicha = ({ username, idUnderscoreformFicha }) => new Promise(
   async (resolve, reject) => {
     try {
-        const result = modelo.Usuarios.modificar_ficha(username, idUnderscoreformFicha);
+        const result = await modelo.Usuarios.modificar_ficha(username, idUnderscoreformFicha);
         switch(result){
             case 0:
                 resolve(Service.successResponse("OK", 200));
