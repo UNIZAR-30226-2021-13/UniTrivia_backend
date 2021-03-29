@@ -12,6 +12,10 @@ function terminar() {
     cliente.close();
 }
 
+/**
+ *
+ * @returns {MongoClient.Db} Instancia de la base de datos de MongoDB
+ */
 function getBD(){
     return bd;
 }

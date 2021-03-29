@@ -13,7 +13,7 @@ const {ObjectId} = require('mongodb');
  * @param respuesta Respuesta a la pregunta de seguridad para el usuario que se va a crear.
  * @returns {number} 0 si ha podido insertar al usuario, 1 si existe el username y 2 error en la bd.
  */
-function registrar(username, hash, email, pregunta, respuesta){
+async function registrar(username, hash, email, pregunta, respuesta){
     const usuario = {
         _id: username,
         mail: email,
@@ -21,7 +21,7 @@ function registrar(username, hash, email, pregunta, respuesta){
         preg: pregunta,
         res: respuesta
     }
-    let ok = 0;
+    let ok = 2;
     const bd = db.getBD();
     try{
         if(bd === null){
@@ -29,25 +29,20 @@ function registrar(username, hash, email, pregunta, respuesta){
             return 2
         }
         const usuarios = bd.collection("usuarios");
-        res = usuarios.find({_id:username});
-        res.count(true, {limit: 1}, function(err, count){
-            if(err){
+        const user = await usuarios.findOne({_id: username});
+        if (!user) {
+            let res = await usuarios.insertOne(usuario);
+            if(res['insertedCount'] === 1){
+                ok = 0;
+                logger.info("Usuario "+username+" creado correctamente");
+            }else{
                 ok = 2;
                 logger.error("Error creando un usuario.",err);
-            }else{
-                if(count === 0){
-                    usuarios.insertOne(usuario, function(err, res){
-                        if(err){
-                            ok = false;
-                            logger.error("Error creando un usuario.",err);
-                        }
-                        logger.info("Usuario "+username+" creado correctamente");
-                    });
-                }else{
-                    ok = 1;
-                }
             }
-        });
+        } else {
+            ok = 1;
+            logger.info("Usuario ya existente");
+        }
     }catch (err){
         logger.error("Unknown error", err);
         return 2;

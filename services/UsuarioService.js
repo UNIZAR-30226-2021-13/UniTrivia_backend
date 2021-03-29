@@ -254,7 +254,7 @@ const register = ({ username, password, email, preg, res }) => new Promise(
           const salt = await bcrypt.genSalt(10);
           const hash = await bcrypt.hash(password, salt);
 
-          const num = modelo.Usuarios.registrar(username,hash,email,preg, res);
+          const num = await modelo.Usuarios.registrar(username,hash,email,preg, res);
           if(num === 0){
               resolve(Service.successResponse("OK", 200));
           }else if(num === 1){
