@@ -71,22 +71,30 @@ const login = ({ username, password }) => new Promise(
 * Se le pasa comos parámetros el identificador que se ha asociado a dicho usuario en el login y el id del nuevo avatar que quiere usar el usuario en cuestión, este útimo debe pertenecer a su lista de comprados.  Devuelve un mensaje de confirmación en caso de poder modificar el avatar. Devuelve un mensaje de error en caso contrario. 
 *
 * username String 
-* idUnderscoreavatar Integer 
+* id_avatar Integer
 * returns String
 * */
-const modify_avatar = ({ username, idUnderscoreavatar }) => new Promise(
+const modify_avatar = ({ username, id_avatar }) => new Promise(
   async (resolve, reject) => {
-    try {
-      resolve(Service.successResponse({
-        username,
-        idUnderscoreavatar,
-      }));
-    } catch (e) {
-      reject(Service.rejectResponse(
-        e.message || 'Invalid input',
-        e.status || 405,
-      ));
-    }
+      try {
+          const result = await modelo.Usuarios.modificar_avatar(username, id_avatar);
+          switch(result){
+              case 0:
+                  resolve(Service.successResponse("OK", 200));
+                  break;
+              case 1:
+                  reject(Service.rejectResponse({code: 1, message: "Error en la BD"},400));
+                  break;
+              default:
+                  reject(Service.rejectResponse({code: -1, message: "Error desconocido"},500));
+
+          }
+      } catch (e) {
+          reject(Service.rejectResponse(
+              e.message || 'Invalid input',
+              e.status || 405,
+          ));
+      }
   },
 );
 /**

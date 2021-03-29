@@ -168,6 +168,31 @@ async function modificar_ficha(username, id_ficha){
     }
 }
 
+/***
+ * Función para modificar eñ avatar del usuario.
+ *
+ * @param username Nombre de usuario a modificar sus datos.
+ * @param id_avatar Identificador de la forma de ficha a asociar al usuario.
+ * @returns {number} 0 si actualiza la forma de la ficha, 1 en caso de error en la BD
+ */
+async function modificar_avatar(username, id_avatar){
+    try {
+        const usuarios = db.getBD().collection("usuarios");
+        const result = await usuarios.updateOne({ _id:username }, {$set: {avtr: ObjectId(id_avatar)}});
+        if(result){
+            logger.info("AVATAR: ok");
+            return 0;
+        }else{
+            logger.info("AVATAR: err");
+            return 2;
+        }
+
+    } catch(e) {
+        logger.error("AVATAR: err", e);
+        return 1;
+    }
+}
+
 /**
  *
  * @param username
@@ -208,4 +233,5 @@ async function modificar_pass(username, newPass, oldPass){
     return ok
 }
 
-module.exports = {registrar, logear, modificar_ficha, modificar_banner, modificar_pass}
+module.exports = {registrar, logear, modificar_ficha, modificar_banner,
+                    modificar_avatar, modificar_pass}
