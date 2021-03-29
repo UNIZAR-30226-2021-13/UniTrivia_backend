@@ -7,20 +7,13 @@ const {ObjectId} = require('mongodb');
  * Función para crear un usuario en la base de datos inicializada anteriormente.
  *
  * @param username Nombre de usuario a crear.
- * @param hash Hash de la contraseña del usuario a crear.
+ * @param password Contraseña del usuario a crear.
  * @param email Email del usuario a crear
  * @param pregunta Pregunta de seguridad del usuario a crear.
  * @param respuesta Respuesta a la pregunta de seguridad para el usuario que se va a crear.
  * @returns {number} 0 si ha podido insertar al usuario, 1 si existe el username y 2 error en la bd.
  */
-async function registrar(username, hash, email, pregunta, respuesta){
-    const usuario = {
-        _id: username,
-        mail: email,
-        hash: hash,
-        preg: pregunta,
-        res: respuesta
-    }
+async function registrar(username, password, email, pregunta, respuesta){
     let ok = 2;
     const bd = db.getBD();
     try{
@@ -31,6 +24,15 @@ async function registrar(username, hash, email, pregunta, respuesta){
         const usuarios = bd.collection("usuarios");
         const user = await usuarios.findOne({_id: username});
         if (!user) {
+            const salt = bcrypt.genSaltSync(10);
+            const hash = bcrypt.hashSync(password, salt);
+            const usuario = {
+                _id: username,
+                mail: email,
+                hash: hash,
+                preg: pregunta,
+                res: respuesta
+            };
             let res = await usuarios.insertOne(usuario);
             if(res['insertedCount'] === 1){
                 ok = 0;
@@ -166,4 +168,44 @@ async function modificar_ficha(username, id_ficha){
     }
 }
 
-module.exports = {registrar, logear, modificar_ficha, modificar_banner}
+/**
+ *
+ * @param username
+ * @param oldPass
+ * @param newPass
+ * @returns {Promise<number>}
+ */
+async function modificar_pass(username, newPass, oldPass){
+    let ok = -1;
+
+    try {
+        const usuarios = db.getBD().collection("usuarios");
+        const user = await usuarios.findOne({_id: username});
+        console.log(username)
+        console.log(oldPass)
+        console.log(newPass)
+        console.log(user)
+        if (!user) {
+            logger.error("Error cambiar contraseña: no existe el usuario.");
+            ok = 2;
+        } else if (!bcrypt.compareSync(oldPass, user['hash'])) {
+            logger.error("Error cambiar contraseña: usuario o contraseña incorrectos.");
+            ok = 1;
+        } else {
+            const salt = bcrypt.genSaltSync(10);
+            const hash = bcrypt.hashSync(newPass, salt);
+            const res = await usuarios.updateOne({_id: username}, {$set: {hash: hash}});
+            if(res){
+                ok = 0;
+            }else{
+                ok = -1;
+            }
+        }
+    }catch(err){
+        logger.error("Error cambiar contraseña: error desconocido.", err);
+        return -1;
+    }
+    return ok
+}
+
+module.exports = {registrar, logear, modificar_ficha, modificar_banner, modificar_pass}

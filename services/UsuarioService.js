@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 const Service = require('./Service');
-const bcrypt = require('bcrypt')
+const logger = require("../logger");
 const modelo = require("../model");
 
 /**
@@ -153,18 +153,32 @@ const modify_formFicha = ({ username, idUnderscoreformFicha }) => new Promise(
 * Se le pasa comos parámetros el nombre de usuario, la contraseña nueva en texto plano y la contraseña vieja o actual en texto plano  Devuelve un mensaje de confirmación de caso de poder modificar la contraseña y un error en caso de error. 
 *
 * username String 
-* newUnderscorepassword String 
-* oldUnderscorepassword String 
+* new_password String
+* old_password String
 * returns String
 * */
-const modify_password = ({ username, newUnderscorepassword, oldUnderscorepassword }) => new Promise(
+const modify_password = ({ username, new_password, old_password }) => new Promise(
   async (resolve, reject) => {
     try {
-      resolve(Service.successResponse({
-        username,
-        newUnderscorepassword,
-        oldUnderscorepassword,
-      }));
+        const code = await modelo.Usuarios.modificar_pass(username, new_password, old_password);
+        switch (code) {
+            case 0:
+                logger.info("CAMBIO CONTRASEÑA: OK");
+                resolve(Service.successResponse("OK", 200));
+                break;
+            case 1:
+                logger.info("CAMBIO CONTRASEÑA: INPUT ERRONEO");
+                reject(Service.rejectResponse({code: 1, message: "Usuario o contraseña incorrectos"},400));
+                break;
+            case 2:
+                logger.info("CAMBIO CONTRASEÑA: NO USUARIO");
+                reject(Service.rejectResponse({code: 2, message: "No existe el usuario"},400));
+                break;
+            default:
+                logger.error("CAMBIO CONTRASEÑA: NI IDEA");
+                reject(Service.rejectResponse({code: -1, message: "Error desconocido"},500));
+                break;
+        }
     } catch (e) {
       reject(Service.rejectResponse(
         e.message || 'Invalid input',
@@ -251,10 +265,7 @@ const register = ({ username, password, email, preg, res }) => new Promise(
   async (resolve, reject) => {
       console.log("Entry")
       try {
-          const salt = await bcrypt.genSalt(10);
-          const hash = await bcrypt.hash(password, salt);
-
-          const num = await modelo.Usuarios.registrar(username,hash,email,preg, res);
+          const num = await modelo.Usuarios.registrar(username,password,email,preg, res);
           if(num === 0){
               resolve(Service.successResponse("OK", 200));
           }else if(num === 1){
