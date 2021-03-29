@@ -3,13 +3,10 @@ const logger = require('../logger');
 
 let cliente = null, bd = null;
 
-function iniciar(url = "mongodb://localhost:27017", nombreBD = "UniTrivia" ) {
+async function iniciar(url = "mongodb://localhost:27017", nombreBD = "UniTrivia" ) {
     cliente = new MongoClient(url,{poolSize: 10, tls: false, useUnifiedTopology: true });
-    cliente.connect().then((cl) =>{
-        cliente = cl;
-        logger.info("Connected DB");
-        bd = cliente.db(nombreBD);
-    });
+    cliente = await cliente.connect();
+    bd = cliente.db(nombreBD);
 }
 function terminar() {
     cliente.close();

@@ -5,7 +5,7 @@ const bd = require('./utils/DatabaseConnection.js');
 
 const launchServer = async () => {
   try{
-    bd.iniciar("mongodb://localhost:27017", "UniTrivia");
+    await bd.iniciar("mongodb://localhost:27017", "UniTrivia");
     logger.info("Pool Connection initialized");
   }catch (err){
     logger.error("Cannot initialize Pool Connection", err.message)
@@ -20,5 +20,9 @@ const launchServer = async () => {
     await this.close();
   }
 };
-
+process.on("SIGINT", async () => {
+  logger.info('Closing Pool Connection');
+  bd.terminar();
+  process.exit();
+});
 launchServer().catch(e => logger.error(e));
