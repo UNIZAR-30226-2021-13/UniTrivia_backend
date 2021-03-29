@@ -101,13 +101,13 @@ const modify_avatar = ({ username, id_avatar }) => new Promise(
 * Se le pasa comos parámetros el identificador que se ha asociado a dicho usuario en el login y el id del nuevo banner que quiere usar el usuario en cuestión, este útimo debe pertenecer a su lista de comprados.  Devuelve un mensaje de confirmación en caso de poder modificar el banner. Devuelve un mensaje de error en caso contrario. 
 *
 * username String 
-* idUnderscorebanner Integer 
+* id_banner Integer
 * returns String
 * */
-const modify_banner = ({ username, idUnderscorebanner }) => new Promise(
+const modify_banner = ({ username, id_banner }) => new Promise(
   async (resolve, reject) => {
     try {
-        const result = await modelo.Usuarios.modificar_banner(username, idUnderscorebanner);
+        const result = await modelo.Usuarios.modificar_banner(username, id_banner);
         switch(result){
             case 0:
                 resolve(Service.successResponse("OK", 200));
@@ -131,13 +131,14 @@ const modify_banner = ({ username, idUnderscorebanner }) => new Promise(
 * Se le pasa comos parámetros el identificador que se ha asociado a dicho usuario en el login y el id de la nueva forma de ficha que quiere usar el usuario en cuestión, este útimo debe pertenecer a su lista de comprados.  Devuelve un mensaje de confirmación en caso de poder modificar la forma de ficha. Devuelve un mensaje de error en caso contrario. 
 *
 * username String 
-* idUnderscoreformFicha Integer 
+* id_formFicha Integer
 * returns String
 * */
-const modify_formFicha = ({ username, idUnderscoreformFicha }) => new Promise(
+const modify_formFicha = ({ username, id_formFicha }) => new Promise(
   async (resolve, reject) => {
     try {
-        const result = await modelo.Usuarios.modificar_ficha(username, idUnderscoreformFicha);
+        console.log(id_formFicha)
+        const result = await modelo.Usuarios.modificar_ficha(username, id_formFicha);
         switch(result){
             case 0:
                 resolve(Service.successResponse("OK", 200));

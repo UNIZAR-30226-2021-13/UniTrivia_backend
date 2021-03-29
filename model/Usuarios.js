@@ -138,7 +138,8 @@ async function logear(username, password){
 async function modificar_banner(username, id_banner){
     try {
         const usuarios = db.getBD().collection("usuarios");
-        const result = await usuarios.updateOne({ _id:username }, {$set: {bnr: ObjectId(id_banner)}});
+        //const result = await usuarios.updateOne({ _id:username }, {$set: {bnr: ObjectId(id_banner)}});
+        const result = await usuarios.updateOne({ _id:username }, {$set: {bnr: id_banner}});
         return 0;
 
     } catch(e) {
@@ -156,10 +157,14 @@ async function modificar_banner(username, id_banner){
  * @param id_ficha Identificador de la forma de ficha a asociar al usuario.
  * @returns {number} 0 si actualiza la forma de la ficha, 1 en caso de error en la BD
  */
-async function modificar_ficha(username, id_ficha){
+async function modificar_ficha(username, id_formFicha){
     try {
         const usuarios = db.getBD().collection("usuarios");
-        const result = await usuarios.updateOne({ _id:username }, {$set: {fich: ObjectId(id_ficha)}});
+        //const result = await usuarios.updateOne({ _id:username }, {$set: {fich: ObjectId(id_ficha)}});
+        console.log(typeof id_formFicha);
+        console.log(id_formFicha);
+        console.log(typeof username);
+        const result = await usuarios.updateOne({ _id:username }, {$set: {fich: id_formFicha}});
         return 0;
 
     } catch(e) {
