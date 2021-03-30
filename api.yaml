@@ -10,7 +10,7 @@ servers:
   - url: https://unitrivia.com/api
 paths:
   /login:
-    post:
+    get:
       tags:
         - Usuario
       description: |
@@ -36,7 +36,7 @@ paths:
           content:
             application/json:
               schema:
-                type: string
+                $ref: '#/components/securitySchemes/jwt'
         default:
           description: Error en el login
           content:
@@ -104,19 +104,16 @@ paths:
 
         Devuelve un mensaje de confirmación de caso de poder modificar la contraseña y
         un error en caso de error.
-      operationId: modify_password
+      security:
+        - jwt: [ ]
+      operationId: modifyPassword
       parameters:
-        - name: username
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: new_password
+        - name: newPassword
           in: header
           required: true
           schema:
             type: string
-        - name: old_password
+        - name: oldPassword
           in: header
           required: true
           schema:
@@ -146,19 +143,16 @@ paths:
         Devuelve un mensaje de confirmación de caso de que la respuesta coincida con la proporcionda y se
         ha podido poder modificar la contraseña. Devuelve error en caso contrario.
 
-      operationId: recover_password
+      security:
+        - jwt: [ ]
+      operationId: recoverPassword
       parameters:
-        - name: username
-          in: header
-          required: true
-          schema:
-            type: string
         - name: res
           in: header
           required: true
           schema:
             type: string
-        - name: new_password
+        - name: newPassword
           in: header
           required: true
           schema:
@@ -176,39 +170,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-
-  /login/recover/pregunta:
-    post:
-      tags:
-        - Usuario
-      description: |
-        Se le pasa como parámetro el nombre de usuario.
-
-        Devuelve la pregunta de seguridad del usuario. Devuelve error en caso de no poder recuperar la pregunta.
-
-      operationId: recover_preg
-      parameters:
-        - name: username
-          in: header
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Pregunta recuperada exitosamente
-          content:
-            application/json:
-              schema:
-                type: string
-        default:
-          description: Error al recuperar pregunta contraseña
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
   /logAsGuest:
-    post:
+    get:
       tags:
         - Usuario
       description: |
@@ -216,48 +179,59 @@ paths:
 
         Devuelve el identificador temporal con el que identificar todas las operaciones
         relacionadas con el invitado.
-      operationId: log_as_guest
+      operationId: logAsGuest
       responses:
         default:
           description: Se le devuelve el identificador asignado
           content:
             application/json:
               schema:
-                type: string
-
-  /profile/listaComprados/{username}:
-    post:
+                $ref: '#/components/securitySchemes/jwt'
+  /profile:
+    get:
       tags:
         - Usuario
       description: |
-        Se le pasa como parámetros el identificador que se ha asociado a dicho usuario en el login.
-
-        Devuelve una lista con los objetos comprados por dicho usuario. Devuelve un mensaje de error si 
-        hay algún probema al recuperar dicha lista.
-      operationId: post_listaComprados
-      parameters:
-        - name: username
-          in: path
-          required: true
-          schema:
-            type: string
+        Obtiene toda la información del usuario: nombre de usuario, email, pregunta de seguridad,
+          respuesta de seguridad, lista de objectos comprados, estadísticas del jugador, opciones
+          de personalización y cantidad de monedas.
+      security:
+        - jwt: [ ]
       responses:
         '200':
-          description: Lista de objetos comprados por dicho usuario
+          description: Objeto con toda la información del usuario.
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  type: integer
+                $ref: '#/components/schemas/Usuario'
         default:
-          description: Error al obtener listado de objetos comprados
+          description: Error al obtener el usuario
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      tags:
+        - Usuario
+      description: |
+        Elimina la información del usuario de la base de datos
+      security:
+        - jwt: [ ]
+      responses:
+        '200':
+          description: Respuesta de exito
+          content:
+            application/json:
+              schema:
+                type: string
+        default:
+          description: Error al eliminar el usuario
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
 
-  /profile/modify/avatar/{username}:
+  /profile/modify/avatar:
     post:
       tags:
         - Usuario
@@ -267,14 +241,11 @@ paths:
 
         Devuelve un mensaje de confirmación en caso de poder modificar el avatar. Devuelve un mensaje de error
         en caso contrario.
-      operationId: modify_avatar
+      operationId: modifyAvatar
+      security:
+        - jwt: [ ]
       parameters:
-        - name: username
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: id_avatar
+        - name: idAvatar
           in: header
           required: true
           schema:
@@ -293,7 +264,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
-  /profile/modify/formFicha/{username}:
+  /profile/modify/formFicha:
     post:
       tags:
         - Usuario
@@ -303,14 +274,11 @@ paths:
 
         Devuelve un mensaje de confirmación en caso de poder modificar la forma de ficha. Devuelve un mensaje de error
         en caso contrario.
-      operationId: modify_formFicha
+      operationId: modifyFormFicha
+      security:
+        - jwt: [ ]
       parameters:
-        - name: username
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: id_formFicha
+        - name: idFormFicha
           in: header
           required: true
           schema:
@@ -329,7 +297,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
-  /profile/modify/banner/{username}:
+  /profile/modify/banner:
     post:
       tags:
         - Usuario
@@ -339,14 +307,11 @@ paths:
 
         Devuelve un mensaje de confirmación en caso de poder modificar el banner. Devuelve un mensaje de error
         en caso contrario.
-      operationId: modify_banner
+      operationId: modifyBanner
+      security:
+        - jwt: [ ]
       parameters:
-        - name: username
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: id_banner
+        - name: idBanner
           in: header
           required: true
           schema:
@@ -365,6 +330,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
+
 components:
   schemas:
     Error:
@@ -378,4 +344,47 @@ components:
           format: int32
         message:
           type: string
+    Usuario:
+      type: object
+      properties:
+        username:
+          description: Nombre de usuario
+          type: string
+        email:
+          description: Correo Electrónico del usuario
+          type: string
+        preg:
+          description: Pregunta de seguridad del usuario
+          type: string
+        res:
+          description: Respuesta de seguridad del usuario
+          type: string
+        coins:
+          description: Cantidad de monedas del usuario
+          type: integer
+        nJugadas:
+          description: Número de partidas jugadas por el usuario
+          type: integer
+        nGanadas:
+          description: Número de partidas ganadas por el usuario
+          type: integer
+        avatar:
+          description: El ObjectID del avatar del usuario
+          type: string
+        banner:
+          description: El ObjectID del banner del usuario
+          type: string
+        ficha:
+          description: El ObjectID de la forma de la ficha del usuario
+          type: string
+        comprados:
+          description: El array de ObjectID con los objetos comproados por el usuario del usuario
+          type: array
+          items:
+            type: string
 
+  securitySchemes:
+    jwt: # arbitrary name for the security scheme
+      type: http
+      scheme: bearer
+      bearerFormat: JWT    # optional, arbitrary value for documentation purposes
