@@ -8,7 +8,7 @@ const modelo = require("../model");
 *
 * returns String
 * */
-const log_as_guest = () => new Promise(
+const logAsGuest = () => new Promise(
   async (resolve, reject) => {
     try {
       resolve(Service.successResponse({
@@ -22,9 +22,7 @@ const log_as_guest = () => new Promise(
   },
 );
 /**
-* Se le pasa como parámetros el nombre de usuario y la contraseña en texto plano.
- * Devuelve el identificadortemporal con el que identificar todas las operaciones relacionadas con el usuario
- * y un error en caso de no poder identificarlo.
+* Se le pasa como parámetros el nombre de usuario y la contraseña en texto plano.  Devuelve el identificador temporal con el que identificar todas las operaciones relacionadas con el usuario y un error en caso de no poder identificarlo. 
 *
 * username String 
 * password String 
@@ -32,7 +30,6 @@ const log_as_guest = () => new Promise(
 * */
 const login = ({ username, password }) => new Promise(
   async (resolve, reject) => {
-      console.log("Entry")
     try {
         const {code, id} = await modelo.Usuarios.logear(username, password);
         console.log(code)
@@ -59,7 +56,6 @@ const login = ({ username, password }) => new Promise(
 
         }
     } catch (e) {
-        console.log("Entry pocho")
       reject(Service.rejectResponse(
         e.message || 'Invalid input',
         e.status || 405,
@@ -70,44 +66,44 @@ const login = ({ username, password }) => new Promise(
 /**
 * Se le pasa comos parámetros el identificador que se ha asociado a dicho usuario en el login y el id del nuevo avatar que quiere usar el usuario en cuestión, este útimo debe pertenecer a su lista de comprados.  Devuelve un mensaje de confirmación en caso de poder modificar el avatar. Devuelve un mensaje de error en caso contrario. 
 *
-* username String 
-* id_avatar Integer
+* jwt String 
+* idavatar Integer 
 * returns String
 * */
-const modify_avatar = ({ username, id_avatar }) => new Promise(
+const modifyAvatar = ({ jwt, idavatar }) => new Promise(
   async (resolve, reject) => {
-      try {
-          const result = await modelo.Usuarios.modificar_avatar(username, id_avatar);
-          switch(result){
-              case 0:
-                  resolve(Service.successResponse("OK", 200));
-                  break;
-              case 1:
-                  reject(Service.rejectResponse({code: 1, message: "Error en la BD"},400));
-                  break;
-              default:
-                  reject(Service.rejectResponse({code: -1, message: "Error desconocido"},500));
+    try {
+        const result = await modelo.Usuarios.modificar_avatar(jwt, idavatar);
+        switch(result){
+            case 0:
+                resolve(Service.successResponse("OK", 200));
+                break;
+            case 1:
+                reject(Service.rejectResponse({code: 1, message: "Error en la BD"},400));
+                break;
+            default:
+                reject(Service.rejectResponse({code: -1, message: "Error desconocido"},500));
 
-          }
-      } catch (e) {
-          reject(Service.rejectResponse(
-              e.message || 'Invalid input',
-              e.status || 405,
-          ));
-      }
+        }
+    } catch (e) {
+      reject(Service.rejectResponse(
+        e.message || 'Invalid input',
+        e.status || 405,
+      ));
+    }
   },
 );
 /**
 * Se le pasa comos parámetros el identificador que se ha asociado a dicho usuario en el login y el id del nuevo banner que quiere usar el usuario en cuestión, este útimo debe pertenecer a su lista de comprados.  Devuelve un mensaje de confirmación en caso de poder modificar el banner. Devuelve un mensaje de error en caso contrario. 
 *
-* username String 
-* id_banner Integer
+* jwt String 
+* idbanner Integer 
 * returns String
 * */
-const modify_banner = ({ username, id_banner }) => new Promise(
+const modifyBanner = ({ jwt, idbanner }) => new Promise(
   async (resolve, reject) => {
     try {
-        const result = await modelo.Usuarios.modificar_banner(username, id_banner);
+        const result = await modelo.Usuarios.modificar_banner(jwt, idbanner);
         switch(result){
             case 0:
                 resolve(Service.successResponse("OK", 200));
@@ -130,15 +126,14 @@ const modify_banner = ({ username, id_banner }) => new Promise(
 /**
 * Se le pasa comos parámetros el identificador que se ha asociado a dicho usuario en el login y el id de la nueva forma de ficha que quiere usar el usuario en cuestión, este útimo debe pertenecer a su lista de comprados.  Devuelve un mensaje de confirmación en caso de poder modificar la forma de ficha. Devuelve un mensaje de error en caso contrario. 
 *
-* username String 
-* id_formFicha Integer
+* jwt String 
+* idformficha Integer 
 * returns String
 * */
-const modify_formFicha = ({ username, id_formFicha }) => new Promise(
+const modifyFormFicha = ({ jwt, idformficha }) => new Promise(
   async (resolve, reject) => {
     try {
-        console.log(id_formFicha)
-        const result = await modelo.Usuarios.modificar_ficha(username, id_formFicha);
+        const result = await modelo.Usuarios.modificar_ficha(jwt, idformficha);
         switch(result){
             case 0:
                 resolve(Service.successResponse("OK", 200));
@@ -161,15 +156,15 @@ const modify_formFicha = ({ username, id_formFicha }) => new Promise(
 /**
 * Se le pasa comos parámetros el nombre de usuario, la contraseña nueva en texto plano y la contraseña vieja o actual en texto plano  Devuelve un mensaje de confirmación de caso de poder modificar la contraseña y un error en caso de error. 
 *
-* username String 
-* new_password String
-* old_password String
+* jwt String 
+* newpassword String 
+* oldpassword String 
 * returns String
 * */
-const modify_password = ({ username, new_password, old_password }) => new Promise(
+const modifyPassword = ({ jwt, newpassword, oldpassword }) => new Promise(
   async (resolve, reject) => {
     try {
-        const code = await modelo.Usuarios.modificar_pass(username, new_password, old_password);
+        const code = await modelo.Usuarios.modificar_pass(jwt, newpassword, oldpassword);
         switch (code) {
             case 0:
                 logger.info("CAMBIO CONTRASEÑA: OK");
@@ -197,16 +192,36 @@ const modify_password = ({ username, new_password, old_password }) => new Promis
   },
 );
 /**
-* Se le pasa como parámetros el identificador que se ha asociado a dicho usuario en el login.  Devuelve una lista con los objetos comprados por dicho usuario. Devuelve un mensaje de error si  hay algún probema al recuperar dicha lista. 
+* Elimina la información del usuario de la base de datos 
 *
-* username String 
-* returns List
+* jwt String 
+* returns String
 * */
-const post_listaComprados = ({ username }) => new Promise(
+const profileDELETE = ({ jwt }) => new Promise(
   async (resolve, reject) => {
     try {
       resolve(Service.successResponse({
-        username,
+        jwt,
+      }));
+    } catch (e) {
+      reject(Service.rejectResponse(
+        e.message || 'Invalid input',
+        e.status || 405,
+      ));
+    }
+  },
+);
+/**
+* Obtiene toda la información del usuario: nombre de usuario, email, pregunta de seguridad,   respuesta de seguridad, lista de objectos comprados, estadísticas del jugador, opciones   de personalización y cantidad de monedas. 
+*
+* jwt String 
+* returns Usuario
+* */
+const profileGET = ({ jwt }) => new Promise(
+  async (resolve, reject) => {
+    try {
+      resolve(Service.successResponse({
+        jwt,
       }));
     } catch (e) {
       reject(Service.rejectResponse(
@@ -219,38 +234,18 @@ const post_listaComprados = ({ username }) => new Promise(
 /**
 * Se le pasa comos parámetros el nombre de usuario, la respuesta a la pregunta de seguridad y la contraseña nueva en texto plano.  Devuelve un mensaje de confirmación de caso de que la respuesta coincida con la proporcionda y se ha podido poder modificar la contraseña. Devuelve error en caso contrario. 
 *
-* username String 
+* jwt String 
 * res String 
-* newUnderscorepassword String 
+* newpassword String 
 * returns String
 * */
-const recover_password = ({ username, res, newUnderscorepassword }) => new Promise(
+const recoverPassword = ({ jwt, res, newpassword }) => new Promise(
   async (resolve, reject) => {
     try {
       resolve(Service.successResponse({
-        username,
+        jwt,
         res,
-        newUnderscorepassword,
-      }));
-    } catch (e) {
-      reject(Service.rejectResponse(
-        e.message || 'Invalid input',
-        e.status || 405,
-      ));
-    }
-  },
-);
-/**
-* Se le pasa como parámetro el nombre de usuario.  Devuelve la pregunta de seguridad del usuario. Devuelve error en caso de no poder recuperar la pregunta. 
-*
-* username String 
-* returns String
-* */
-const recover_preg = ({ username }) => new Promise(
-  async (resolve, reject) => {
-    try {
-      resolve(Service.successResponse({
-        username,
+        newpassword,
       }));
     } catch (e) {
       reject(Service.rejectResponse(
@@ -272,34 +267,33 @@ const recover_preg = ({ username }) => new Promise(
 * */
 const register = ({ username, password, email, preg, res }) => new Promise(
   async (resolve, reject) => {
-      console.log("Entry")
-      try {
-          const num = await modelo.Usuarios.registrar(username,password,email,preg, res);
-          if(num === 0){
-              resolve(Service.successResponse("OK", 200));
-          }else if(num === 1){
-              reject(Service.rejectResponse({code: 1, message: "Usuario ya existente"},400));
-          }else{
-              reject(Service.rejectResponse({code: 0, message: "Error desconocido"},500));
-          }
-      } catch (e) {
-          reject(Service.rejectResponse(
-              e.message || 'Invalid input',
-              e.status || 405,
-          ));
-      }
+    try {
+        const num = await modelo.Usuarios.registrar(username,password,email,preg, res);
+        if(num === 0){
+            resolve(Service.successResponse("OK", 200));
+        }else if(num === 1){
+            reject(Service.rejectResponse({code: 1, message: "Usuario ya existente"},400));
+        }else{
+            reject(Service.rejectResponse({code: 0, message: "Error desconocido"},500));
+        }
+    } catch (e) {
+      reject(Service.rejectResponse(
+        e.message || 'Invalid input',
+        e.status || 405,
+      ));
+    }
   },
 );
 
 module.exports = {
-  log_as_guest,
+  logAsGuest,
   login,
-  modify_avatar,
-  modify_banner,
-  modify_formFicha,
-  modify_password,
-  post_listaComprados,
-  recover_password,
-  recover_preg,
+  modifyAvatar,
+  modifyBanner,
+  modifyFormFicha,
+  modifyPassword,
+  profileDELETE,
+  profileGET,
+  recoverPassword,
   register,
 };

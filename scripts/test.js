@@ -42,19 +42,19 @@ db.createCollection("usuarios",{
 					description: "Número de partidas ganadas"
 				},
 				avtr: {
-					bsonType: "int",
+					bsonType: "ObjectId",
 					description: "Id del avatar"
 				},
 				bnr: {
-					bsonType: "int",
+					bsonType: "ObjectId",
 					description: "Id del banner"
 				},
 				fich: {
-					bsonType: "int",
+					bsonType: "ObjectId",
 					description: "Id de la forma de ficha del usuario"
 				},
 				rfs: {
-					bsonType: ["int"],
+					bsonType: ["ObjectId"],
 					description: "Ids de todos los objetos comprados por el usuario"
 				}
 			}

@@ -1,7 +1,46 @@
 const db = require('../utils/DatabaseConnection.js')
 const logger = require("../logger");
+const JWT = require('jsonwebtoken');
+const config = require('../config');
 const bcrypt = require('bcrypt');
 const {ObjectId} = require('mongodb');
+
+
+/**
+ * Función para validar un token.
+ *
+ * @param token JWT a validar
+ * @returns {null|object} Objeto con la información contenida del token si es válido
+ *          y si no devuelve null
+ */
+function validarToken(token) {
+    try {
+        return JWT.verify(token, config.JWT_KEY);
+    } catch(err){
+        logger.error("Token no válido", err);
+        return null;
+    }
+
+}
+
+/***
+ * Función para crear un token.
+ *
+ * @param username Nombre de usuario a crear.
+ * @param guest True si el usuario es invitado y false en caso contrario.
+ * @returns {null|string} token o null si error
+ */
+function crearToken(username, guest) {
+    try {
+        const payload = {user: username, guest: guest};
+        return JWT.sign(payload, config.JWT_KEY, {expiresIn: '20h'});
+    } catch(err){
+        logger.error("Error creando token", err);
+        return null;
+    }
+
+}
+
 
 /***
  * Función para crear un usuario en la base de datos inicializada anteriormente.
@@ -39,7 +78,7 @@ async function registrar(username, password, email, pregunta, respuesta){
                 logger.info("Usuario "+username+" creado correctamente");
             }else{
                 ok = 2;
-                logger.error("Error creando un usuario.",err);
+                logger.error("Error creando un usuario.");
             }
         } else {
             ok = 1;
@@ -57,7 +96,7 @@ async function registrar(username, password, email, pregunta, respuesta){
  *
  * @param username Nombre de usuario a logear.
  * @param password Contraseña del usuario a logear.
- * @returns {code: numbre, id: string} 0 si se valida correctamente el login, 1 si la contraseña o el
+ * @returns {object} 0 si se valida correctamente el login, 1 si la contraseña o el
  *          usuario son incorrectos ,2 si el usuario no existe y 3 si se produce un error en la bd.
  */
 /*
@@ -154,7 +193,7 @@ async function modificar_banner(username, id_banner){
  * Función para modificar la forma de ficha de un usuario.
  *
  * @param username Nombre de usuario a modificar sus datos.
- * @param id_ficha Identificador de la forma de ficha a asociar al usuario.
+ * @param id_formFicha Identificador de la forma de ficha a asociar al usuario.
  * @returns {number} 0 si actualiza la forma de la ficha, 1 en caso de error en la BD
  */
 async function modificar_ficha(username, id_formFicha){

@@ -8,40 +8,40 @@
 
 const Controller = require('./Controller');
 const service = require('../services/UsuarioService');
-const log_as_guest = async (request, response) => {
-  await Controller.handleRequest(request, response, service.log_as_guest);
+const logAsGuest = async (request, response) => {
+  await Controller.handleRequest(request, response, service.logAsGuest);
 };
 
 const login = async (request, response) => {
   await Controller.handleRequest(request, response, service.login);
 };
 
-const modify_avatar = async (request, response) => {
-  await Controller.handleRequest(request, response, service.modify_avatar);
+const modifyAvatar = async (request, response) => {
+  await Controller.handleRequest(request, response, service.modifyAvatar);
 };
 
-const modify_banner = async (request, response) => {
-  await Controller.handleRequest(request, response, service.modify_banner);
+const modifyBanner = async (request, response) => {
+  await Controller.handleRequest(request, response, service.modifyBanner);
 };
 
-const modify_formFicha = async (request, response) => {
-  await Controller.handleRequest(request, response, service.modify_formFicha);
+const modifyFormFicha = async (request, response) => {
+  await Controller.handleRequest(request, response, service.modifyFormFicha);
 };
 
-const modify_password = async (request, response) => {
-  await Controller.handleRequest(request, response, service.modify_password);
+const modifyPassword = async (request, response) => {
+  await Controller.handleRequest(request, response, service.modifyPassword);
 };
 
-const post_listaComprados = async (request, response) => {
-  await Controller.handleRequest(request, response, service.post_listaComprados);
+const profileDELETE = async (request, response) => {
+  await Controller.handleRequest(request, response, service.profileDELETE);
 };
 
-const recover_password = async (request, response) => {
-  await Controller.handleRequest(request, response, service.recover_password);
+const profileGET = async (request, response) => {
+  await Controller.handleRequest(request, response, service.profileGET);
 };
 
-const recover_preg = async (request, response) => {
-  await Controller.handleRequest(request, response, service.recover_preg);
+const recoverPassword = async (request, response) => {
+  await Controller.handleRequest(request, response, service.recoverPassword);
 };
 
 const register = async (request, response) => {
@@ -50,14 +50,14 @@ const register = async (request, response) => {
 
 
 module.exports = {
-  log_as_guest,
+  logAsGuest,
   login,
-  modify_avatar,
-  modify_banner,
-  modify_formFicha,
-  modify_password,
-  post_listaComprados,
-  recover_password,
-  recover_preg,
+  modifyAvatar,
+  modifyBanner,
+  modifyFormFicha,
+  modifyPassword,
+  profileDELETE,
+  profileGET,
+  recoverPassword,
   register,
 };

@@ -123,7 +123,6 @@ class Controller {
         requestParams[param.name] = request.headers[param.name];
       }
     });
-    //console.log(requestParams)
     return requestParams;
   }
 
