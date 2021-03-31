@@ -7,7 +7,7 @@ info:
     name: MIT License
     url: https://opensource.org/licenses/mit-license.php
 servers:
-  - url: https://unitrivia.com/api
+  - url: http://localhost:3000/api
 paths:
   /login:
     get:
@@ -36,7 +36,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/securitySchemes/jwt'
+                type: string
         default:
           description: Error en el login
           content:
@@ -94,7 +94,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
-  /profile/modify/password/{username}:
+  /profile/modify/password:
     post:
       tags:
         - Usuario
@@ -108,12 +108,17 @@ paths:
         - jwt: [ ]
       operationId: modifyPassword
       parameters:
-        - name: newPassword
+        - name: jwt
           in: header
           required: true
           schema:
             type: string
-        - name: oldPassword
+        - name: new-password
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: old-password
           in: header
           required: true
           schema:
@@ -147,12 +152,17 @@ paths:
         - jwt: [ ]
       operationId: recoverPassword
       parameters:
+        - name: jwt
+          in: header
+          required: true
+          schema:
+            type: string
         - name: res
           in: header
           required: true
           schema:
             type: string
-        - name: newPassword
+        - name: new-password
           in: header
           required: true
           schema:
@@ -186,7 +196,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/securitySchemes/jwt'
+                type: string
   /profile:
     get:
       tags:
@@ -197,6 +207,12 @@ paths:
           de personalización y cantidad de monedas.
       security:
         - jwt: [ ]
+      parameters:
+        - name: jwt
+          in: header
+          required: true
+          schema:
+            type: string
       responses:
         '200':
           description: Objeto con toda la información del usuario.
@@ -217,6 +233,12 @@ paths:
         Elimina la información del usuario de la base de datos
       security:
         - jwt: [ ]
+      parameters:
+        - name: jwt
+          in: header
+          required: true
+          schema:
+            type: string
       responses:
         '200':
           description: Respuesta de exito
@@ -243,9 +265,14 @@ paths:
         en caso contrario.
       operationId: modifyAvatar
       security:
-        - jwt: [ ]
+        - jwt: []
       parameters:
-        - name: idAvatar
+        - name: jwt
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: id-avatar
           in: header
           required: true
           schema:
@@ -278,7 +305,12 @@ paths:
       security:
         - jwt: [ ]
       parameters:
-        - name: idFormFicha
+        - name: jwt
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: id-form-ficha
           in: header
           required: true
           schema:
@@ -311,7 +343,12 @@ paths:
       security:
         - jwt: [ ]
       parameters:
-        - name: idBanner
+        - name: jwt
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: id-banner
           in: header
           required: true
           schema:
@@ -329,7 +366,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-
 
 components:
   schemas:
@@ -385,6 +421,6 @@ components:
 
   securitySchemes:
     jwt: # arbitrary name for the security scheme
-      type: http
-      scheme: bearer
-      bearerFormat: JWT    # optional, arbitrary value for documentation purposes
+      type: apiKey
+      in: header
+      name: jwt
