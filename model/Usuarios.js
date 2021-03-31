@@ -155,7 +155,7 @@ async function logear(username, password){
             id = "Error login: usuario o contraseña incorrectos.";
         } else {
             code = 0;
-            id = user._id;
+            id = crearToken(user._id, false);
         }
         console.log({code: code, id: id})
         return {code: code, id: id};
@@ -170,16 +170,22 @@ async function logear(username, password){
 /***
  * Función para modificar el banner de un usuario.
  *
- * @param username Nombre de usuario a modificar sus datos.
+ * @param token Token de sesión del usuario.
  * @param id_banner Identificador del bannera asociar al usuario.
- * @returns {number} 0 si actualiza el banner, 1 en caso de error en la BD
+ * @returns {number} 0 si actualiza el banner, 1 en caso de error en la BD, 2 acceso no autorizado
  */
-async function modificar_banner(username, id_banner){
+async function modificar_banner(token, id_banner){
     try {
         const usuarios = db.getBD().collection("usuarios");
-        //const result = await usuarios.updateOne({ _id:username }, {$set: {bnr: ObjectId(id_banner)}});
-        const result = await usuarios.updateOne({ _id:username }, {$set: {bnr: id_banner}});
-        return 0;
+        const obj = validarToken(token);
+        if(obj) {
+            //const result = await usuarios.updateOne({ _id:username }, {$set: {bnr: ObjectId(id_banner)}});
+            const result = await usuarios.updateOne({_id: obj.user}, {$set: {bnr: id_banner}});
+            return 0;
+        }else{
+            logger.error("Usuario no identificado");
+            return 2;
+        }
 
     } catch(e) {
         logger.error("Error update banner: error en la BD.", e);
@@ -192,19 +198,24 @@ async function modificar_banner(username, id_banner){
 /***
  * Función para modificar la forma de ficha de un usuario.
  *
- * @param username Nombre de usuario a modificar sus datos.
+ * @param token Token de sesión del usuario.
  * @param id_formFicha Identificador de la forma de ficha a asociar al usuario.
  * @returns {number} 0 si actualiza la forma de la ficha, 1 en caso de error en la BD
  */
-async function modificar_ficha(username, id_formFicha){
+async function modificar_ficha(token, id_formFicha){
     try {
         const usuarios = db.getBD().collection("usuarios");
+        const obj = validarToken(token);
         //const result = await usuarios.updateOne({ _id:username }, {$set: {fich: ObjectId(id_ficha)}});
         console.log(typeof id_formFicha);
         console.log(id_formFicha);
-        console.log(typeof username);
-        const result = await usuarios.updateOne({ _id:username }, {$set: {fich: id_formFicha}});
-        return 0;
+        console.log(typeof obj.user);
+        if(obj){
+            const result = await usuarios.updateOne({ _id:obj.user }, {$set: {fich: id_formFicha}});
+            return 0;
+        }else{
+            return 2;
+        }
 
     } catch(e) {
         logger.error("Error update forma de la ficha: error en la BD.", e);
@@ -215,22 +226,26 @@ async function modificar_ficha(username, id_formFicha){
 /***
  * Función para modificar eñ avatar del usuario.
  *
- * @param username Nombre de usuario a modificar sus datos.
+ * @param token Token de sesión del usuario.
  * @param id_avatar Identificador de la forma de ficha a asociar al usuario.
  * @returns {number} 0 si actualiza la forma de la ficha, 1 en caso de error en la BD
  */
-async function modificar_avatar(username, id_avatar){
+async function modificar_avatar(token, id_avatar){
     try {
         const usuarios = db.getBD().collection("usuarios");
-        const result = await usuarios.updateOne({ _id:username }, {$set: {avtr: ObjectId(id_avatar)}});
-        if(result){
-            logger.info("AVATAR: ok");
-            return 0;
+        const obj = validarToken(token);
+        if(obj) {
+            const result = await usuarios.updateOne({_id: obj.user}, {$set: {avtr: ObjectId(id_avatar)}});
+            if (result) {
+                logger.info("AVATAR: ok");
+                return 0;
+            } else {
+                logger.info("AVATAR: err");
+                return 1;
+            }
         }else{
-            logger.info("AVATAR: err");
             return 2;
         }
-
     } catch(e) {
         logger.error("AVATAR: err", e);
         return 1;
@@ -238,37 +253,44 @@ async function modificar_avatar(username, id_avatar){
 }
 
 /**
+ * Dado un token de sesión válido, la contraseña actual y la nueva contraseña.
+ * cambia la contraseña del usuario.
  *
- * @param username
- * @param oldPass
- * @param newPass
+ * @param token Token de sesión del usuario.
+ * @param oldPass Contraseña anterior
+ * @param newPass Nueva contraseña
  * @returns {Promise<number>}
  */
-async function modificar_pass(username, newPass, oldPass){
+async function modificar_pass(token, newPass, oldPass){
     let ok = -1;
 
     try {
         const usuarios = db.getBD().collection("usuarios");
-        const user = await usuarios.findOne({_id: username});
-        console.log(username)
-        console.log(oldPass)
-        console.log(newPass)
-        console.log(user)
-        if (!user) {
-            logger.error("Error cambiar contraseña: no existe el usuario.");
-            ok = 2;
-        } else if (!bcrypt.compareSync(oldPass, user['hash'])) {
-            logger.error("Error cambiar contraseña: usuario o contraseña incorrectos.");
-            ok = 1;
-        } else {
-            const salt = bcrypt.genSaltSync(10);
-            const hash = bcrypt.hashSync(newPass, salt);
-            const res = await usuarios.updateOne({_id: username}, {$set: {hash: hash}});
-            if(res){
-                ok = 0;
-            }else{
-                ok = -1;
+        const obj = validarToken(token);
+        if(obj) {
+            const user = await usuarios.findOne({_id: obj.user});
+            console.log(obj.user)
+            console.log(oldPass)
+            console.log(newPass)
+            console.log(user)
+            if (!user) {
+                logger.error("Error cambiar contraseña: no existe el usuario.");
+                ok = 2;
+            } else if (!bcrypt.compareSync(oldPass, user['hash'])) {
+                logger.error("Error cambiar contraseña: usuario o contraseña incorrectos.");
+                ok = 1;
+            } else {
+                const salt = bcrypt.genSaltSync(10);
+                const hash = bcrypt.hashSync(newPass, salt);
+                const res = await usuarios.updateOne({_id: obj.user}, {$set: {hash: hash}});
+                if (res) {
+                    ok = 0;
+                } else {
+                    ok = -1;
+                }
             }
+        }else{
+            ok = 1;
         }
     }catch(err){
         logger.error("Error cambiar contraseña: error desconocido.", err);
