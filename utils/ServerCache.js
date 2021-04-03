@@ -170,10 +170,23 @@ async function unirseSala(id_sala, usuario, priv){
 
 /**
  * Función para unirse a una sala pública alearoria
- * @param usuario
+ * @param usuario Usuario al que meter en una sala pública
  */
-function buscarPartida(usuario){
-
+async function buscarPartida(usuario){
+    try {
+        const ids = salasPub.keys();
+        let index = ~~(Math.random() * ids.length);
+        for(let i = 0; i<ids.length ; i++){
+            if((await unirseSala(ids[index], usuario, false)) === 0){
+                return 0;
+            }
+            index = (index + 1) % ids.length;
+        }
+        return 1;
+    } catch (e) {
+        logger.error('Error al buscar partida', e)
+        return 1;
+    }
 }
 
 /**
@@ -184,47 +197,56 @@ function buscarPartida(usuario){
  */
 async function abandonarSala(id_sala, usuario, priv){
     try{
-        let value = salasPriv.get(id_sala);
+        let value = undefined;
         if(priv){
+            value = salasPriv.get(id_sala);
             if(value === undefined){
                 return 1;
             } else {
-                return await value.mutex.runExclusive(async () => {
-                    value.nJugadores--;
-                    let index = -1;
-                    for (let i = 0; i < value.jugadores.length && index < 0; i++) {
-                        if (value.jugadores[i] === usuario) {
-                            index = i;
+                if(value.lider === usuario){
+                    return borrarSala(id_sala);
+                } else {
+                    return await value.mutex.runExclusive(async () => {
+                        value.nJugadores--;
+                        let index = -1;
+                        for (let i = 0; i < value.jugadores.length && index < 0; i++) {
+                            if (value.jugadores[i] === usuario) {
+                                index = i;
+                            }
                         }
-                    }
-                    if (index >= 0) {
-                        value.jugadores.splice(index, 1);
-                        return 0;
-                    } else{
-                        return 1;
-                    }
-                });
+                        if (index >= 0) {
+                            value.jugadores.splice(index, 1);
+                            return 0;
+                        } else {
+                            return 1;
+                        }
+                    });
+                }
             }
         } else {
             value = salasPub.get(id_sala);
             if(value === undefined){
                 return 1;
             } else {
-                return await value.mutex.runExclusive(async () => {
-                    value.nJugadores--;
-                    let index = -1;
-                    for (let i = 0; i < value.jugadores.length && index < 0; i++) {
-                        if (value.jugadores[i] === usuario) {
-                            index = i;
+                if(value.lider === usuario){
+                    return borrarSala(id_sala);
+                } else {
+                    return await value.mutex.runExclusive(async () => {
+                        value.nJugadores--;
+                        let index = -1;
+                        for (let i = 0; i < value.jugadores.length && index < 0; i++) {
+                            if (value.jugadores[i] === usuario) {
+                                index = i;
+                            }
                         }
-                    }
-                    if (index >= 0) {
-                        value.jugadores.splice(index, 1);
-                        return 0;
-                    } else{
-                        return 1;
-                    }
-                });
+                        if (index >= 0) {
+                            value.jugadores.splice(index, 1);
+                            return 0;
+                        } else {
+                            return 1;
+                        }
+                    });
+                }
             }
         }
     } catch (e) {
@@ -233,11 +255,59 @@ async function abandonarSala(id_sala, usuario, priv){
 }
 
 /**
+ * Pre: la peticion solo la puede hacer el lider de la sala
  * Función para borrar una sala de la memoria caché
- * @param id_sala
+ * @param id_sala Identificador de la sala
+ * @param {boolean} priv True si la sala es privada y false en caso contrario
  */
-function borrarSala(id_sala){
+async function borrarSala(id_sala, priv){
+    try{
+        let value = undefined;
+        if(priv){
+            value = salasPriv.get(id_sala);
+            if(value === undefined){
+                return 0;
+            } else {
+                const release = await value.mutex.acquire();
+                try {
+                    value.mutex.cancel();
+                    salasPriv.del(id_sala);
+                } finally{
+                    release();
+                    if(!salasPriv.has(id_sala)) {
+                        return 0;
+                    } else{
+                        return 1;
+                    }
+                }
 
+            }
+        } else{
+            value = salasPub.get(id_sala);
+            if(value === undefined){
+                return 0;
+            } else {
+                const release = await value.mutex.acquire();
+                try {
+                    value.mutex.cancel();
+                    salasPub.del(id_sala);
+                } finally{
+                    release();
+                    if(!salasPub.has(id_sala)) {
+                        return 0;
+                    } else{
+                        return 1;
+                    }
+                }
+
+            }
+        }
+    } catch (e) {
+        if (!salasPriv.has(id_sala) && !salasPub.has(id_sala)) {
+            logger.error('Error al borrar sala', e);
+            return 1;
+        }
+    }
 }
 
 /**
@@ -302,7 +372,7 @@ function cambiarTurno(id_partida, jugador){
 
 /**
  * Función para que un usuario abandone la partida
- * @param id_partida
+ * @param id_partida Identificador de la partida a borrar
  */
 function abandonarPartida(id_partida){
 
@@ -313,7 +383,17 @@ function abandonarPartida(id_partida){
  * @param id_partida
  */
 function borrarPartida(id_partida){
-
+    try{
+        salasJuego.del(id_partida);
+    } catch (e) {
+        logger.error('Error al borrarPartida',e);
+    } finally {
+        if(!salasJuego.has(id_partida)) {
+            return 0;
+        } else {
+            return 1;
+        }
+    }
 }
 
 
