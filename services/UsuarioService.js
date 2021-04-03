@@ -200,9 +200,18 @@ const modifyPassword = ({ jwt, newpassword, oldpassword }) => new Promise(
 const profileDELETE = ({ jwt }) => new Promise(
   async (resolve, reject) => {
     try {
-      resolve(Service.successResponse({
-        jwt,
-      }));
+        const obj = await modelo.Usuarios.deletePerfil(jwt);
+        switch (obj){
+            case 0: // OK
+                resolve(Service.successResponse("OK", 200));
+                break;
+            case 1: //NO AUTH
+                reject(Service.rejectResponse({code: 1, message: "Usuario o contraseña incorrectos"},400));
+                break;
+            case 2: //NO EXISTE LA CUENTA
+                reject(Service.rejectResponse({code: 2, message: "No existe el usuario"},500));
+                break;
+        }
     } catch (e) {
       reject(Service.rejectResponse(
         e.message || 'Invalid input',
@@ -220,9 +229,18 @@ const profileDELETE = ({ jwt }) => new Promise(
 const profileGET = ({ jwt }) => new Promise(
   async (resolve, reject) => {
     try {
-      resolve(Service.successResponse({
-        jwt,
-      }));
+      const obj = await modelo.Usuarios.getPerfil(jwt);
+      switch (obj['code']){
+          case 0: // OK
+            resolve(Service.successResponse(obj['data'], 200));
+            break;
+          case 1: //NO AUTH
+            reject(Service.rejectResponse({code: 1, message: "Usuario o contraseña incorrectos"},400));
+            break;
+          case 2: //ERROR BD
+            reject(Service.rejectResponse({code: -1, message: "Error desconocido"},500));
+            break;
+      }
     } catch (e) {
       reject(Service.rejectResponse(
         e.message || 'Invalid input',

@@ -3,7 +3,7 @@ const logger = require("../logger");
 const JWT = require('jsonwebtoken');
 const config = require('../config');
 const bcrypt = require('bcrypt');
-const {ObjectId} = require('mongodb');
+const {ObjectID} = require('mongodb');
 
 
 /**
@@ -299,5 +299,58 @@ async function modificar_pass(token, newPass, oldPass){
     return ok
 }
 
+/**
+ *
+ * @param token Token de identificación del usuario
+ * @returns {Promise<{code: number, data: *}|{code: number, data: null}>}
+ *              Devuelve 0 si ok, 1 si no autorizado, 2 si error bd.
+ *              Si es 0, devuelve la información del usuario, sino null.
+ */
+async function getPerfil(token) {
+    const usuarios = db.getBD().collection("usuarios");
+    const obj = validarToken(token);
+    if (obj && !obj['guest']) {
+        const usr = await usuarios.findOne({_id: obj.user});
+        if (usr) {
+            const base = {
+                _id: "",
+                mail: "",
+                preg: "",
+                res: "",
+                cns: 0,
+                nj: 0,
+                ng: 0,
+                avtr: new ObjectID.createFromHexString("606872ebc2d44c011b19f627"), //HAY QUE CAMBIAR EL VALOR POR UN DEFAULT
+                bnr: new ObjectID.createFromHexString("606872ebc2d44c011b19f627"), //HAY QUE CAMBIAR EL VALOR POR UN DEFAULT
+                fich: new ObjectID.createFromHexString("606872ebc2d44c011b19f627"), //HAY QUE CAMBIAR EL VALOR POR UN DEFAULT
+                rfs: []
+            };
+            delete usr.hash;
+            return {code: 0, data: {...base, ...usr}};
+        } else {
+            return {code: 2, data: null};
+        }
+    //}else if(obj && !obj['guest']){
+    }else{
+        return {code: 1, data: null};
+    }
+}
+
+async function deletePerfil(token){
+    const usuarios = db.getBD().collection("usuarios");
+    const obj = validarToken(token);
+    if(obj && !obj['guest']) {
+        const res = await usuarios.deleteOne({_id: obj.user});
+        if(res['deletedCount'] > 0){
+            return 0
+        }else{
+            return 2;
+        }
+    //}else if(obj && !obj['guest']){
+    }else{
+        return 1;
+    }
+}
+
 module.exports = {registrar, logear, modificar_ficha, modificar_banner,
-                    modificar_avatar, modificar_pass}
+                    modificar_avatar, modificar_pass,getPerfil, deletePerfil}

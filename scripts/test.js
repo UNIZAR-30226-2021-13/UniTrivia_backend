@@ -54,7 +54,10 @@ db.createCollection("usuarios",{
 					description: "Id de la forma de ficha del usuario"
 				},
 				rfs: {
-					bsonType: ["ObjectId"],
+					bsonType: array,
+					items:{
+						bsonType: "ObjectId"
+					},
 					description: "Ids de todos los objetos comprados por el usuario"
 				}
 			}
