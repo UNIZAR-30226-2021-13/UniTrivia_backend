@@ -73,9 +73,9 @@ function randString(length) {
 
 function crear(){
     try {
-        salasPub = new NodeCache({maxKeys: 100});
-        salasPriv = new NodeCache({maxKeys: 20});
-        salasJuego = new NodeCache({stdTTL: 72000});
+        salasPub = new NodeCache({maxKeys: 100, useClones: false});
+        salasPriv = new NodeCache({maxKeys: 20, useClones: false});
+        salasJuego = new NodeCache({stdTTL: 72000, useClones: false});
 
     } catch(err){
         logger.error("Error al crear la memoria cache", err);
@@ -106,17 +106,17 @@ function stop() {
 function crearSala(usuario, priv){
     try{
         let id_sala = randString(5);
-        let valor = NodoSala([usuario], 1, usuario);
+        let valor = new NodoSala([usuario], 1, usuario);
         if(priv){
             salasPriv.set(id_sala, valor);
         } else {
             salasPub.set(id_sala, valor);
         }
-        return 0;
+        return {code:0 , sala: id_sala};
 
     } catch (e){
         logger.error('Error al crear sala', e)
-        return 1;
+        return {code:1 , sala: ""};
     }
 
 
@@ -126,45 +126,49 @@ function crearSala(usuario, priv){
  * Función para que un jugador se pueda unir a una sala
  * @param {string} id_sala Identificador de la sala
  * @param {string} usuario Usuario a añadir a la sala
- * @param {boolean} priv True si la sala es privada y false en caso contrario
  */
-async function unirseSala(id_sala, usuario, priv){
+async function unirseSala(id_sala, usuario){
     try{
-        let value = salasPriv.get(id_sala);
-        if(priv){
+        let value = undefined;
+        if(salasPriv.has(id_sala)){
+            value = salasPriv.get(id_sala);
             if(value === undefined){
-                return 1;
+                return {code:1 , sala: id_sala};
             } else {
                 return await value.mutex.runExclusive(async () => {
                     if(value.nJugadores < config.MAX_JUGADORES) {
                         value.nJugadores++;
                         value.jugadores.push(usuario);
-                        return 0;
+                        //console.log(value.jugadores)
+                        return {code:0 , sala: id_sala};
                     } else {
-                        return 1;
+                        return {code:1 , sala: id_sala};
                     }
                 });
 
             }
-        } else {
+        } else if (salasPub.has(id_sala)){
             value = salasPub.get(id_sala);
             if(value === undefined){
-                return 1;
+                return {code:1 , sala: id_sala};
             } else {
                 return await value.mutex.runExclusive(async () => {
                     if(value.nJugadores < 6) {
                         value.nJugadores++;
                         value.jugadores.push(usuario);
-                        return 0;
+                        //console.log(value.jugadores)
+                        return {code:0 , sala: id_sala};
                     } else {
-                        return 1;
+                        return {code:1 , sala: id_sala};
                     }
                 });
             }
+        } else {
+            return {code:1 , sala: id_sala};
         }
     } catch (e){
         logger.error('Error al unirse a la sala', e);
-        return 1;
+        return {code:1 , sala: id_sala};
     }
 
 }
@@ -178,15 +182,16 @@ async function buscarPartida(usuario){
         const ids = salasPub.keys();
         let index = ~~(Math.random() * ids.length);
         for(let i = 0; i<ids.length ; i++){
-            if((await unirseSala(ids[index], usuario, false)) === 0){
-                return 0;
+            const res = await unirseSala(ids[index], usuario);
+            if( res.code === 0){
+                return res;
             }
             index = (index + 1) % ids.length;
         }
-        return 1;
+        return crearSala(usuario, false);
     } catch (e) {
         logger.error('Error al buscar partida', e)
-        return 1;
+        return {code:1 , sala: ""};
     }
 }
 
@@ -194,12 +199,11 @@ async function buscarPartida(usuario){
  * Función para obandonar la sala o echar a un jugador de ella
  * @param {string} id_sala Identificador de la sala
  * @param {string} usuario Usuario a echar de la sala
- * @param {boolean} priv True si la sala es privada y false en caso contrario
  */
-async function abandonarSala(id_sala, usuario, priv){
+async function abandonarSala(id_sala, usuario){
     try{
         let value = undefined;
-        if(priv){
+        if(salasPriv.has(id_sala)){
             value = salasPriv.get(id_sala);
             if(value === undefined){
                 return 1;
@@ -224,11 +228,12 @@ async function abandonarSala(id_sala, usuario, priv){
                     });
                 }
             }
-        } else {
+        } else if (salasPub.has(id_sala)){
             value = salasPub.get(id_sala);
             if(value === undefined){
                 return 1;
             } else {
+                //console.log(value.jugadores)
                 if(value.lider === usuario){
                     return borrarSala(id_sala);
                 } else {
@@ -242,6 +247,7 @@ async function abandonarSala(id_sala, usuario, priv){
                         }
                         if (index >= 0) {
                             value.jugadores.splice(index, 1);
+                            //console.log(value.jugadores)
                             return 0;
                         } else {
                             return 1;
@@ -249,6 +255,8 @@ async function abandonarSala(id_sala, usuario, priv){
                     });
                 }
             }
+        } else {
+            return 1;
         }
     } catch (e) {
         logger.error('Error al abandonar sala', e)
@@ -259,12 +267,11 @@ async function abandonarSala(id_sala, usuario, priv){
  * Pre: la peticion solo la puede hacer el lider de la sala
  * Función para borrar una sala de la memoria caché
  * @param id_sala Identificador de la sala
- * @param {boolean} priv True si la sala es privada y false en caso contrario
  */
-async function borrarSala(id_sala, priv){
+async function borrarSala(id_sala){
     try{
         let value = undefined;
-        if(priv){
+        if(salasPriv.has(id_sala)){
             value = salasPriv.get(id_sala);
             if(value === undefined){
                 return 0;
@@ -283,7 +290,7 @@ async function borrarSala(id_sala, priv){
                 }
 
             }
-        } else{
+        } else if(salasPub.has(id_sala)){
             value = salasPub.get(id_sala);
             if(value === undefined){
                 return 0;
@@ -302,6 +309,8 @@ async function borrarSala(id_sala, priv){
                 }
 
             }
+        } else {
+            return 1;
         }
     } catch (e) {
         if (!salasPriv.has(id_sala) && !salasPub.has(id_sala)) {
@@ -327,9 +336,9 @@ async function comenzarPartida(id_sala){
                 }
                 let jugadores = []
                 sala.jugadores.forEach(function(jugador, index, array){
-                    jugadores.push(NodoJugador(jugador, 0, [], config.MAX_QUESITOS));
+                    jugadores.push( new NodoJugador(jugador, 0, [], config.MAX_QUESITOS));
                 })
-                const partida = NodoJuego(Math.random() * sala.nJugadores, jugadores, sala.nJugadores);
+                const partida = new NodoJuego(Math.random() * sala.nJugadores, jugadores, sala.nJugadores);
                 salasJuego.set(id_sala, partida);
                 if(salasPub.has(id_sala)){
                     salasPub.del(id_sala);
