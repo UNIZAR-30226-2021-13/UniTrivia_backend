@@ -2,6 +2,7 @@ const config = require('./config');
 const logger = require('./logger');
 const ExpressServer = require('./expressServer');
 const bd = require('./utils/DatabaseConnection.js');
+const cache = require('./utils/ServerCache');
 
 const launchServer = async () => {
   try{
@@ -12,6 +13,7 @@ const launchServer = async () => {
     await this.close();
   }
   try {
+    cache.crear();
     this.expressServer = new ExpressServer(config.URL_PORT, config.OPENAPI_YAML);
     this.expressServer.launch();
     logger.info('Express server running');
@@ -23,6 +25,7 @@ const launchServer = async () => {
 process.on("SIGINT", async () => {
   logger.info('Closing Pool Connection');
   bd.terminar();
+  cache.stop();
   process.exit();
 });
 launchServer().catch(e => logger.error(e));
