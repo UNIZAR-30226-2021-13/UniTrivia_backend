@@ -1,10 +1,11 @@
 const logger = require('../logger');
 const NodeCache = require('node-cache');
 const Mutex = require('async-mutex').Mutex;
+const config = require('../config')
 
-let salasPub = null;
-let salasPriv = null;
-let salasJuego = null;
+let salasPub = null; //NodeCache con las salas publicas pendientes de empezar
+let salasPriv = null; //NodeCache con las salas privadas pendientes de empezar
+let salasJuego = null; //NodeCache con las salas en las que actualmente se está jugando
 
 class NodoJugador{
     /**
@@ -55,7 +56,7 @@ class NodoSala{
     }
 }
 
-
+//Origen: https://stackoverflow.com/a/1349426
 function randString(length) {
     let result = '';
     let characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-';
@@ -135,7 +136,7 @@ async function unirseSala(id_sala, usuario, priv){
                 return 1;
             } else {
                 return await value.mutex.runExclusive(async () => {
-                    if(value.nJugadores < 6) {
+                    if(value.nJugadores < config.MAX_JUGADORES) {
                         value.nJugadores++;
                         value.jugadores.push(usuario);
                         return 0;
@@ -270,8 +271,8 @@ async function borrarSala(id_sala, priv){
             } else {
                 const release = await value.mutex.acquire();
                 try {
-                    value.mutex.cancel();
                     salasPriv.del(id_sala);
+                    value.mutex.cancel();
                 } finally{
                     release();
                     if(!salasPriv.has(id_sala)) {
@@ -311,11 +312,41 @@ async function borrarSala(id_sala, priv){
 }
 
 /**
- * Función para comenzar la partida con los jugadores presentes en la sala
+ * Función para comenzar la partida con los jugadores presentes en la sala.
+ * Borra la sala de caché y crea la partida en la caché correspondiente.
  * @param id_sala
  */
-function comenzarPartida(id_sala){
+async function comenzarPartida(id_sala){
+    try {
+        const sala = salasPub.has(id_sala) ? salasPub.get(id_sala) : salasPriv.get(id_sala);
+        if (sala){
+            return await sala.mutex.runExclusive(async () => {
+                if(sala.nJugadores < config.MIN_JUGADORES){
+                    logger.error('Error al comenzar partida, no hay jugadores suficientes');
+                    return 3;
+                }
+                let jugadores = []
+                sala.jugadores.forEach(function(jugador, index, array){
+                    jugadores.push(NodoJugador(jugador, 0, [], config.MAX_QUESITOS));
+                })
+                const partida = NodoJuego(Math.random() * sala.nJugadores, jugadores, sala.nJugadores);
+                salasJuego.set(id_sala, partida);
+                if(salasPub.has(id_sala)){
+                    salasPub.del(id_sala);
+                }else{
+                    salasPriv.del(id_sala);
+                }
+                return 0;
 
+            });
+        }else{
+            logger.error('Error al comenzar partida, no existe la partida');
+            return 2;
+        }
+    } catch(e) {
+        logger.error('Error al comenzar partida', e);
+        return 1;
+    }
 }
 
 /**
@@ -373,9 +404,44 @@ function cambiarTurno(id_partida, jugador){
 /**
  * Función para que un usuario abandone la partida
  * @param id_partida Identificador de la partida a borrar
+ * @param jugador
  */
-function abandonarPartida(id_partida){
+function abandonarPartida(id_partida, jugador){
+    try{
+        let value = salasJuego.get(id_partida);
+        if(value !== undefined){
+            const data = value.jugadores.findIndex(t => t.nombre===jugador);
+            if(data !== -1){ // Está en la lista
+                value.jugadores.splice(data, 1); // Elimina al usuario
+                if(value.turno === jugador) { //Era su turno
 
+                }
+            }else{//No está en la lista
+                logger.error('Error al abandonar partida, no está el jugador');
+                return 2;
+            }
+
+            if(value.turno === jugador){ // Si era su turno, lo actualiza
+                let actualizado = false;
+                for(let i = 0; i<value.jugadores.length && !actualizado; i++){
+                    if(value.jugadores[i].nombre === jugador){
+                        value.jugadores[i].casilla = casilla;
+                        actualizado = true;
+                    }
+                }
+                return actualizado ? 0 : 1;
+            } else {
+                logger.error('Error al abandonar partida, no es el turno del jugador');
+                return 2;
+            }
+        } else {
+            logger.error('Error al abandonar partida, no existe la sala');
+            return 1;
+        }
+    } catch (e) {
+        logger.error('Error al abandonar partida', e);
+        return 1;
+    }
 }
 
 /**
