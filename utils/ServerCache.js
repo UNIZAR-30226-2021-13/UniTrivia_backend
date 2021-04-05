@@ -10,6 +10,7 @@ function anyadirQuesito(id_partida, jugador, quesito){
         if(value !== undefined){
             if(value.turno === jugador){
                 value.jugadores[jugador].quesitos.push(quesito);
+                value.jugadores[jugador].nRestantes--;
                 return 0;
             }else{
                 logger.error("Error al anyadir quesito, no es el turno del jugador");
