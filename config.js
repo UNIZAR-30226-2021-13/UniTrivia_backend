@@ -4,7 +4,7 @@ require('dotenv').config();
 const config = {
   ROOT_DIR: __dirname,
   URL_PORT: process.env.PORT || 3000,
-  URL_PATH: 'http://localhost',
+  URL_PATH: 'https://unitrivia.herokuapp.com',
   BASE_VERSION: 'v2',
   CONTROLLER_DIRECTORY: path.join(__dirname, 'controllers'),
   PROJECT_DIR: __dirname,

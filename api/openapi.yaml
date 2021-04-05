@@ -7,7 +7,7 @@ info:
   title: UniTrivia
   version: 1.0.0
 servers:
-- url: http://localhost:3000/api
+- url: https://unitrivia.herokuapp.com/api
 paths:
   /login:
     get:
