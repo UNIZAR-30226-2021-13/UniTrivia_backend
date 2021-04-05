@@ -7,7 +7,7 @@ const cacheTest = require('./utils/ServerCacheTest.js');
 
 const launchServer = async () => {
   try{
-    await bd.iniciar("mongodb://localhost:27017", "UniTrivia");
+    await bd.iniciar(config.ATLAS_URI, "UniTrivia");
     logger.info("Pool Connection initialized");
   }catch (err){
     logger.error("Cannot initialize Pool Connection", err.message)

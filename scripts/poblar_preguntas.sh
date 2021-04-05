@@ -49,4 +49,5 @@ fi
 
 mongoimport --host "$HOST" --port "$PORT" \
             --db="UniTrivia" --collection="preguntas" \
+	    --stopOnError \
             --jsonArray --file="preguntas.json"
