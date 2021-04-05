@@ -33,4 +33,10 @@ process.on("SIGINT", async () => {
   cache.stop();
   process.exit();
 });
+process.on("SIGTERM", async () => {
+  logger.info('Closing Pool Connection');
+  bd.terminar();
+  cache.stop();
+  process.exit();
+});
 launchServer().catch(e => logger.error(e));
