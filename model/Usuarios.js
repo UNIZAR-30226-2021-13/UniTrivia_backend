@@ -320,9 +320,9 @@ async function getPerfil(token) {
                 cns: 0,
                 nj: 0,
                 ng: 0,
-                avtr: new ObjectID.createFromHexString("606872ebc2d44c011b19f627"), //HAY QUE CAMBIAR EL VALOR POR UN DEFAULT
-                bnr: new ObjectID.createFromHexString("606872ebc2d44c011b19f627"), //HAY QUE CAMBIAR EL VALOR POR UN DEFAULT
-                fich: new ObjectID.createFromHexString("606872ebc2d44c011b19f627"), //HAY QUE CAMBIAR EL VALOR POR UN DEFAULT
+                avtr: new ObjectID.createFromHexString("606b2b15adc9cc1846fe1500"), //TODO: HAY QUE CAMBIAR EL VALOR POR UN DEFAULT
+                bnr: new ObjectID.createFromHexString("606b2b15adc9cc1846fe1500"), //TODO: HAY QUE CAMBIAR EL VALOR POR UN DEFAULT
+                fich: new ObjectID.createFromHexString("606b2b15adc9cc1846fe1500"), //TODO: HAY QUE CAMBIAR EL VALOR POR UN DEFAULT
                 rfs: []
             };
             delete usr.hash;

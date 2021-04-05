@@ -42,21 +42,21 @@ db.createCollection("usuarios",{
 					description: "Número de partidas ganadas"
 				},
 				avtr: {
-					bsonType: "ObjectId",
+					bsonType: "objectId",
 					description: "Id del avatar"
 				},
 				bnr: {
-					bsonType: "ObjectId",
+					bsonType: "objectId",
 					description: "Id del banner"
 				},
 				fich: {
-					bsonType: "ObjectId",
+					bsonType: "objectId",
 					description: "Id de la forma de ficha del usuario"
 				},
 				rfs: {
-					bsonType: array,
+					bsonType: "array",
 					items:{
-						bsonType: "ObjectId"
+						bsonType: "objectId"
 					},
 					description: "Ids de todos los objetos comprados por el usuario"
 				}
@@ -79,7 +79,7 @@ db.createCollection("preguntas",{
 			required: ["_id", "pregunta", "categoria", "resp_c", "resps_inc"],
 			properties: {
 				_id: {
-					bsonType: "ObjectId",
+					bsonType: "objectId",
 					description: "Identificador único de la pregunta. Entero y Obligatorio"
 				},
 				pregunta: {
@@ -122,7 +122,7 @@ db.createCollection("imagenes",{
 			required: ["_id", "tipo"],
 			properties: {
 				_id: {
-					bsonType: "ObjectId",
+					bsonType: "objectId",
 					description: "Identificador único de la imagen. Id y Obligatorio"
 				},
 				tipo: {
@@ -130,9 +130,9 @@ db.createCollection("imagenes",{
 					description: "Cadena que contiene el tipo de imagen. Enumeración y Obligatorio"
 				},
 				img: {
-                			bsonType: "binData",
-                			description: "Datos binarios de la imagen"
-                		}
+                	bsonType: "binData",
+                	description: "Datos binarios de la imagen"
+				}
 			}
 		}
 	},
