@@ -50,7 +50,7 @@ function cambiarTurno(id_partida, jugador){
                 let actualizado = false;
                 for(let i = 0; i < value.jugadores.lenght && !actualizado; i++) {
                     if(value.jugadores[i].nombre === jugador) {
-                        value.turno = value.jugadores[i+1].nombre;
+                        value.turno = value.jugadores[(i+1) % value.jugadores.lenght].nombre;
                         actualizado = true;
                     }
                 }
