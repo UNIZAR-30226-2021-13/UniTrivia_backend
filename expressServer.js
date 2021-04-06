@@ -12,6 +12,8 @@ const { OpenApiValidator } = require('express-openapi-validator');
 const logger = require('./logger');
 const config = require('./config');
 
+let io = undefined;
+
 class ExpressServer {
   constructor(port, openApiYaml) {
     this.port = port;
@@ -65,7 +67,9 @@ class ExpressServer {
           });
         });
 
-        http.createServer(this.app).listen(this.port);
+        const server = http.createServer(this.app);
+        io = require('socket.io')(server);
+        server.listen(this.port);
         console.log(`Listening on port ${this.port}`);
       });
   }
