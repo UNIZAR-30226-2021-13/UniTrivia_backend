@@ -9,9 +9,20 @@ function anyadirQuesito(id_partida, jugador, quesito){
         let value = salasJuego.get(id_partida);
         if(value !== undefined){
             if(value.turno === jugador){
-                value.jugadores[jugador].quesitos.push(quesito);
-                value.jugadores[jugador].nRestantes--;
-                return 0;
+                let actualizado = false;
+                for(let i = 0; i < value.jugadores.lenght && !actualizado; i++) {
+                    if(value.jugadores[i].nombre === jugador) {
+                        value.jugadores[i].quesitos.push(quesito);
+                        value.jugadores[i].nRestantes--;
+                        actualizado = true;
+                    }
+                }
+                if(actualizado === true){
+                    return 0;
+                }else{
+                    logger.error("Error al anyadir quesito, jugador no encontrado");
+                    return 3;
+                }
             }else{
                 logger.error("Error al anyadir quesito, no es el turno del jugador");
                 return 2;
@@ -36,9 +47,19 @@ function cambiarTurno(id_partida, jugador){
         let value = salasJuego.get(id_partida);
         if(value !== undefined){
             if(value.turno === jugador){
-                let turno_actualizado = (value.turno + 1) % value.nJugadores;
-                value.turno = turno_actualizado;
-                return 0;
+                let actualizado = false;
+                for(let i = 0; i < value.jugadores.lenght && !actualizado; i++) {
+                    if(value.jugadores[i].nombre === jugador) {
+                        value.turno = value.jugadores[i+1].nombre;
+                        actualizado = true;
+                    }
+                }
+                if(actualizado === true){
+                    return 0;
+                }else{
+                    logger.error("Error al cambiar turno, jugador no encontrado");
+                    return 3;
+                }
             }else{
                 logger.error("Error al cambiar turno, no es el turno del jugador");
                 return 2;
