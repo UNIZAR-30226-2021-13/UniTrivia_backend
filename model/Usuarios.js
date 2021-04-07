@@ -357,10 +357,12 @@ async function deletePerfil(token){
  *
  * @param token Token de sesión del usuario
  * @param res Respuesta dada
- * @return {number} 0 si la respuesta es correcta, 1 si es incorrecta, 2 si error
- *          en la base de datos y 3 si acceso no autorizado
+ * @param newpassword Nueva contraseña que se establecerá si coincide la respuesta
+ * @return {number} 0 si la respuesta es correcta y consigue cambiar la contraseña, 1 si es incorrecta, 2 si error
+ *          en la base de datos, 3 si acceso no autorizado y 4 si respuesta correcta pero no se ha podido cambiar
+ *          la contraseña
  */
-async function validar_respuesta(token, res){
+async function validar_respuesta(token, res, newpassword){
     let ok = 0;
 
     try{
@@ -371,7 +373,16 @@ async function validar_respuesta(token, res){
 
 
             if( res.toUpperCase() === user.res.toUpperCase() ){
-                ok = 0;
+                const salt = bcrypt.genSaltSync(10);
+                const hash = bcrypt.hashSync(newpassword,salt);
+                const res = await usuarios.updateOne({_id: obj.user}, {$set: {hash: hash}});
+                if(res) {
+                    ok = 0;
+                }
+                else {
+                    logger.error("Respuesta correcta, pero no se ha podido cambiar contrasenya");
+                    ok = 4;
+                }
             }else{
                 ok = 1;
             }
