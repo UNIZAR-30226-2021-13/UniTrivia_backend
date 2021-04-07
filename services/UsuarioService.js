@@ -252,19 +252,41 @@ const profileGET = ({ jwt }) => new Promise(
 /**
 * Se le pasa comos parámetros el nombre de usuario, la respuesta a la pregunta de seguridad y la contraseña nueva en texto plano.  Devuelve un mensaje de confirmación de caso de que la respuesta coincida con la proporcionda y se ha podido poder modificar la contraseña. Devuelve error en caso contrario. 
 *
-* jwt String 
+* username String 
 * res String 
-* newpassword String 
+* newUnderscorepassword String 
 * returns String
 * */
-const recoverPassword = ({ jwt, res, newpassword }) => new Promise(
+const recover_password = ({ jwt, res, newpassword }) => new Promise(
   async (resolve, reject) => {
     try {
-      resolve(Service.successResponse({
-        jwt,
-        res,
-        newpassword,
-      }));
+      const code = await modelo.Usuarios.validar_respuesta(jwt,res,newpassword);
+      switch (code){
+          case 0:
+              logger.info("RECUPERACIÓN DE PASSWORD: OK");
+              resolve(Service.successResponse("OK",200));
+              break;
+
+          case 1:
+              logger.info("RECUPERACIÓN DE PASSWORD: respuesta incorrecta");
+              reject(Service.rejectResponse({code: 1, message:"Respuesta incorrecta"},400));
+              break;
+
+          case 2:
+              logger.info("RECUPERACIÓN DE PASSWORD: error en bd");
+              reject(Service.rejectResponse({code: 1, message:"Error en bd"},400));
+              break;
+
+          case 3:
+              logger.info("RECUPERACIÓN DE PASSWORD: usuario no identificado");
+              reject(Service.rejectResponse({code: 1, message:"Usuario no identificado"},400));
+              break;
+
+          case 4:
+              logger.info("RECUPERACIÓN DE PASSWORD: error al cambiar la contraseña");
+              reject(Service.rejectResponse({code: 1, message:"Error al cambiar la contraseña"},400));
+              break;
+      }
     } catch (e) {
       reject(Service.rejectResponse(
         e.message || 'Invalid input',
