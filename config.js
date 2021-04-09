@@ -10,7 +10,7 @@ const config = {
   MAX_QUESITOS: 6,
   MAX_JUGADORES: 6,
   MIN_JUGADORES: 2,
-  ATLAS_URI: 'mongodb+srv://cluster0.ud3f3.mongodb.net/UniTrivia?authSource=%24external&authMechanism=MONGODB-X509&retryWrites=true&w=majority'
+  ATLAS_URI: 'mongodb://localhost:27017'
 };
 config.OPENAPI_YAML = path.join(config.ROOT_DIR, 'api', 'openapi.yaml');
 config.FULL_PATH = `${config.URL_PATH}:${config.URL_PORT}/${config.BASE_VERSION}`;

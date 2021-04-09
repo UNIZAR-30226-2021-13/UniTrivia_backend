@@ -8,6 +8,7 @@ async function iniciar(url = "mongodb://localhost:27017", nombreBD = "UniTrivia"
     cliente = new MongoClient(url,{
         poolSize: 10,
         tls: true,
+        tlsAllowInvalidCertificates: true,
         tlsCertificateKeyFile: config.PATH_MONGO_KEY});
     cliente = await cliente.connect();
     bd = cliente.db(nombreBD);
