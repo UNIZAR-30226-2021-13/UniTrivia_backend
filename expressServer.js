@@ -67,10 +67,8 @@ class ExpressServer {
           });
         });
 
-        const server = http.createServer(this.app);
-        io = require('socket.io')(server);
-        server.listen(this.port);
-        console.log(`Listening on port ${this.port}`);
+        const server = new SocketioServer(this.app, this.port);
+        server.launch();
       });
   }
 
