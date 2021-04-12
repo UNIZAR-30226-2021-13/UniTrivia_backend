@@ -256,7 +256,7 @@ const profileGET = ({ jwt }) => new Promise(
 * newUnderscorepassword String 
 * returns String
 * */
-const recover_password = ({ jwt, res, newpassword }) => new Promise(
+const recoverPassword = ({ jwt, res, newpassword }) => new Promise(
   async (resolve, reject) => {
     try {
       const code = await modelo.Usuarios.validar_respuesta(jwt,res,newpassword);
