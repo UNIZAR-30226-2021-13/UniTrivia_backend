@@ -11,12 +11,18 @@ const modelo = require("../model");
 const logAsGuest = () => new Promise(
   async (resolve, reject) => {
     try {
-      resolve(Service.successResponse({
-      }));
+      const {code, id} = await modelo.Usuarios.invitado();
+      switch (code){
+          case 0:
+              resolve(Service.successResponse(id, 200));
+          default:
+              reject(Service.rejectResponse(
+                  {code: -1, message: "Error desconocido"},500
+              ));
+      }
     } catch (e) {
       reject(Service.rejectResponse(
-        e.message || 'Invalid input',
-        e.status || 405,
+          {code: -1, message: "Error desconocido"},500
       ));
     }
   },
@@ -57,8 +63,7 @@ const login = ({ username, password }) => new Promise(
         }
     } catch (e) {
       reject(Service.rejectResponse(
-        e.message || 'Invalid input',
-        e.status || 405,
+          {code: -1, message: "Error desconocido"},500
       ));
     }
   },
@@ -87,8 +92,7 @@ const modifyAvatar = ({ jwt, idavatar }) => new Promise(
         }
     } catch (e) {
       reject(Service.rejectResponse(
-        e.message || 'Invalid input',
-        e.status || 405,
+          {code: -1, message: "Error desconocido"},500
       ));
     }
   },
@@ -117,8 +121,7 @@ const modifyBanner = ({ jwt, idbanner }) => new Promise(
         }
     } catch (e) {
       reject(Service.rejectResponse(
-        e.message || 'Invalid input',
-        e.status || 405,
+          {code: -1, message: "Error desconocido"},500
       ));
     }
   },
@@ -147,8 +150,7 @@ const modifyFormFicha = ({ jwt, idformficha }) => new Promise(
         }
     } catch (e) {
       reject(Service.rejectResponse(
-        e.message || 'Invalid input',
-        e.status || 405,
+          {code: -1, message: "Error desconocido"},500
       ));
     }
   },
@@ -185,8 +187,7 @@ const modifyPassword = ({ jwt, newpassword, oldpassword }) => new Promise(
         }
     } catch (e) {
       reject(Service.rejectResponse(
-        e.message || 'Invalid input',
-        e.status || 405,
+          {code: -1, message: "Error desconocido"},500
       ));
     }
   },
@@ -214,8 +215,7 @@ const profileDELETE = ({ jwt }) => new Promise(
         }
     } catch (e) {
       reject(Service.rejectResponse(
-        e.message || 'Invalid input',
-        e.status || 405,
+          {code: -1, message: "Error desconocido"},500
       ));
     }
   },
@@ -243,8 +243,7 @@ const profileGET = ({ jwt }) => new Promise(
       }
     } catch (e) {
       reject(Service.rejectResponse(
-        e.message || 'Invalid input',
-        e.status || 405,
+          {code: -1, message: "Error desconocido"},500
       ));
     }
   },
@@ -289,8 +288,7 @@ const recover_password = ({ jwt, res, newpassword }) => new Promise(
       }
     } catch (e) {
       reject(Service.rejectResponse(
-        e.message || 'Invalid input',
-        e.status || 405,
+          {code: -1, message: "Error desconocido"},500
       ));
     }
   },
@@ -318,8 +316,7 @@ const register = ({ username, password, email, preg, res }) => new Promise(
         }
     } catch (e) {
       reject(Service.rejectResponse(
-        e.message || 'Invalid input',
-        e.status || 405,
+          {code: -1, message: "Error desconocido"},500
       ));
     }
   },

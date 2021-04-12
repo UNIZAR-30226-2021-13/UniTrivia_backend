@@ -4,6 +4,16 @@ const logger = require("../logger");
 const {ObjectID} = require('mongodb');
 const bcrypt = require('bcrypt');
 
+//Origen: https://stackoverflow.com/a/1349426
+function randString(length) {
+    let result = '';
+    let characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-';
+    let charactersLength = characters.length;
+    for (let i = 0; i < length; i++) {
+        result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    }
+    return result;
+}
 
 /***
  * Función para crear un usuario en la base de datos inicializada anteriormente.
@@ -62,45 +72,6 @@ async function registrar(username, password, email, pregunta, respuesta){
  * @returns {object} 0 si se valida correctamente el login, 1 si la contraseña o el
  *          usuario son incorrectos ,2 si el usuario no existe y 3 si se produce un error en la bd.
  */
-/*
-function logear(username, password){
-    const usuarios = db.getBD().collection("usuarios");
-    let code = -1;
-    let id = "Error desconocido";
-
-    const result = ({ username, password }) => new Promise(
-        async (resolve, reject) => {
-            usuarios.findOne({_id: username})
-                .then( user => {
-                    if (!user) {
-                        logger.error("Error login: no existe el usuario.");
-                        code = 2;
-                        id = "Error login: no existe el usuario.";
-                    } else if (!bcrypt.compareSync(password, user.hash)) {
-                        logger.error("Error login: usuario o contraseña incorrectos.");
-                        code = 1;
-                        id = "Error login: usuario o contraseña incorrectos.";
-                    } else {
-                        code = 0;
-                        id = user._id;
-                    }
-                    console.log({code: code, id: id})
-                    resolve({code: code, id: id});
-                },
-                err => logger.error("Error login: error en la BD.", err))
-                .catch(e => logger.error("Error login: error desconocido.", e));
-        });
-
-    console.log(result);
-    if(!result){
-        return {code: code, id: id};
-    } else{
-        return result;
-    }
-
-}
-*/
-
 async function logear(username, password){
     let code = 3;
     let id = "Error en la BD";
@@ -126,6 +97,25 @@ async function logear(username, password){
     } catch(e) {
         logger.error("Error login: error desconocido.", e);
         return {code: code, id: id};
+    }
+
+}
+
+/**
+ * Función para crear una sesión como invitado
+ *
+ * @returns {Promise<{code: number, id: string}>}
+ */
+async function invitado(){
+    try {
+        const username = "Guest_" + randString(10);
+        const id = jwt.crearToken(username, true);
+        console.log({code: 0, id: id})
+        return {code: 0, id: id};
+
+    } catch(e) {
+        logger.error("Error login: error desconocido.", e);
+        return {code: 1, id: ""};
     }
 
 }
@@ -361,5 +351,5 @@ async function validar_respuesta(token, res, newpassword){
     return ok;
 }
 
-module.exports = {registrar, logear, modificar_ficha, modificar_banner,
+module.exports = {registrar, logear, invitado, modificar_ficha, modificar_banner,
                     modificar_avatar, modificar_pass,getPerfil, deletePerfil, validar_respuesta}
