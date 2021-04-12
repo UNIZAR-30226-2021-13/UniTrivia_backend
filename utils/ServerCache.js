@@ -28,7 +28,7 @@ class NodoJuego{
     /**
      * Constructor
      *
-     * @param {number} turno Id del vector de jugadores del usuario que tiene el turno
+     * @param {string} turno Nombre del jugador que tiene el turno
      * @param {NodoJugador[]} jugadores Array con la información de la partida de cada jugador
      * @param {number} nJugadores Número de componentes del array jugadores
      */
@@ -208,25 +208,34 @@ async function abandonarSala(id_sala, usuario){
             if(value === undefined){
                 return 1;
             } else {
-                if(value.lider === usuario){
-                    return borrarSala(id_sala);
-                } else {
-                    return await value.mutex.runExclusive(async () => {
+                return await value.mutex.runExclusive(async () => {
+
+                    let index = -1;
+                    for (let i = 0; i < value.jugadores.length && index < 0; i++) {
+                        if (value.jugadores[i] === usuario) {
+                            index = i;
+                        }
+                    }
+                    if (index >= 0 && value.nJugadores > 1 && value.jugadores[index] === usuario) {
+                        value.jugadores.splice(index, 1);
                         value.nJugadores--;
-                        let index = -1;
-                        for (let i = 0; i < value.jugadores.length && index < 0; i++) {
-                            if (value.jugadores[i] === usuario) {
-                                index = i;
-                            }
-                        }
-                        if (index >= 0) {
-                            value.jugadores.splice(index, 1);
-                            return 0;
-                        } else {
-                            return 1;
-                        }
-                    });
-                }
+                        value.lider = value.jugadores[0];
+                        return 0;
+
+                    } else if(index >= 0 && value.nJugadores > 1){
+                        value.jugadores.splice(index, 1);
+                        value.nJugadores--;
+                        return 0;
+
+                    } else if(index >= 0 && value.nJugadores <= 1) {
+                        value.mutex.cancel();
+                        salasPriv.del(id_sala);
+                        return 0;
+
+                    } else{
+                        return 1;
+                    }
+                });
             }
         } else if (salasPub.has(id_sala)){
             value = salasPub.get(id_sala);
@@ -238,18 +247,29 @@ async function abandonarSala(id_sala, usuario){
                     return borrarSala(id_sala);
                 } else {
                     return await value.mutex.runExclusive(async () => {
-                        value.nJugadores--;
                         let index = -1;
                         for (let i = 0; i < value.jugadores.length && index < 0; i++) {
                             if (value.jugadores[i] === usuario) {
                                 index = i;
                             }
                         }
-                        if (index >= 0) {
+                        if (index >= 0 && value.nJugadores > 1 && value.jugadores[index] === usuario) {
                             value.jugadores.splice(index, 1);
-                            //console.log(value.jugadores)
+                            value.nJugadores--;
+                            value.lider = value.jugadores[0];
                             return 0;
-                        } else {
+
+                        } else if(index >= 0 && value.nJugadores > 1){
+                            value.jugadores.splice(index, 1);
+                            value.nJugadores--;
+                            return 0;
+
+                        } else if(index >= 0 && value.nJugadores <= 1) {
+                            value.mutex.cancel();
+                            salasPub.del(id_sala);
+                            return 0;
+
+                        } else{
                             return 1;
                         }
                     });
@@ -278,8 +298,8 @@ async function borrarSala(id_sala){
             } else {
                 const release = await value.mutex.acquire();
                 try {
-                    salasPriv.del(id_sala);
                     value.mutex.cancel();
+                    salasPriv.del(id_sala);
                 } finally{
                     release();
                     if(!salasPriv.has(id_sala)) {
@@ -338,8 +358,9 @@ async function comenzarPartida(id_sala){
                 sala.jugadores.forEach(function(jugador, index, array){
                     jugadores.push( new NodoJugador(jugador, 0, [], config.MAX_QUESITOS));
                 })
-                const partida = new NodoJuego(Math.random() * sala.nJugadores, jugadores, sala.nJugadores);
+                const partida = new NodoJuego(sala.jugadores[Math.random() * sala.nJugadores], jugadores, sala.nJugadores);
                 salasJuego.set(id_sala, partida);
+                sala.mutex.cancel();
                 if(salasPub.has(id_sala)){
                     salasPub.del(id_sala);
                 }else{
