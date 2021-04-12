@@ -80,7 +80,7 @@ class SocketioServer{
             });
 
             socket.on('mensaje', (msg) => {
-                socket.to('idSala').emit('chat', {usuario: socket.username, msg: msg});
+                socket.to(idSala).emit('chat', {usuario: socket.username, msg: msg});
             });
         });
     }
