@@ -1,45 +1,8 @@
-const db = require('../utils/DatabaseConnection.js')
+const db = require('../utils/DatabaseConnection.js');
+const jwt = require('../utils/JWT.js');
 const logger = require("../logger");
-const JWT = require('jsonwebtoken');
-const config = require('../config');
-const bcrypt = require('bcrypt');
 const {ObjectID} = require('mongodb');
-
-
-/**
- * Función para validar un token.
- *
- * @param token JWT a validar
- * @returns {null|object} Objeto con la información contenida del token si es válido
- *          y si no devuelve null
- */
-function validarToken(token) {
-    try {
-        return JWT.verify(token, config.JWT_KEY);
-    } catch(err){
-        logger.error("Token no válido", err);
-        return null;
-    }
-
-}
-
-/***
- * Función para crear un token.
- *
- * @param username Nombre de usuario a crear.
- * @param guest True si el usuario es invitado y false en caso contrario.
- * @returns {null|string} token o null si error
- */
-function crearToken(username, guest) {
-    try {
-        const payload = {user: username, guest: guest};
-        return JWT.sign(payload, config.JWT_KEY, {expiresIn: '20h'});
-    } catch(err){
-        logger.error("Error creando token", err);
-        return null;
-    }
-
-}
+const bcrypt = require('bcrypt');
 
 
 /***
@@ -155,7 +118,7 @@ async function logear(username, password){
             id = "Error login: usuario o contraseña incorrectos.";
         } else {
             code = 0;
-            id = crearToken(user._id, false);
+            id = jwt.crearToken(user._id, false);
         }
         console.log({code: code, id: id})
         return {code: code, id: id};
@@ -177,7 +140,7 @@ async function logear(username, password){
 async function modificar_banner(token, id_banner){
     try {
         const usuarios = db.getBD().collection("usuarios");
-        const obj = validarToken(token);
+        const obj = jwt.validarToken(token);
         if(obj) {
             //const result = await usuarios.updateOne({ _id:username }, {$set: {bnr: ObjectId(id_banner)}});
             const result = await usuarios.updateOne({_id: obj.user}, {$set: {bnr: id_banner}});
@@ -205,7 +168,7 @@ async function modificar_banner(token, id_banner){
 async function modificar_ficha(token, id_formFicha){
     try {
         const usuarios = db.getBD().collection("usuarios");
-        const obj = validarToken(token);
+        const obj = jwt.validarToken(token);
         //const result = await usuarios.updateOne({ _id:username }, {$set: {fich: ObjectId(id_ficha)}});
         console.log(typeof id_formFicha);
         console.log(id_formFicha);
@@ -233,7 +196,7 @@ async function modificar_ficha(token, id_formFicha){
 async function modificar_avatar(token, id_avatar){
     try {
         const usuarios = db.getBD().collection("usuarios");
-        const obj = validarToken(token);
+        const obj = jwt.validarToken(token);
         if(obj) {
             const result = await usuarios.updateOne({_id: obj.user}, {$set: {avtr: ObjectId(id_avatar)}});
             if (result) {
@@ -266,7 +229,7 @@ async function modificar_pass(token, newPass, oldPass){
 
     try {
         const usuarios = db.getBD().collection("usuarios");
-        const obj = validarToken(token);
+        const obj = jwt.validarToken(token);
         if(obj) {
             const user = await usuarios.findOne({_id: obj.user});
             console.log(obj.user)
@@ -308,7 +271,7 @@ async function modificar_pass(token, newPass, oldPass){
  */
 async function getPerfil(token) {
     const usuarios = db.getBD().collection("usuarios");
-    const obj = validarToken(token);
+    const obj = jwt.validarToken(token);
     if (obj && !obj['guest']) {
         const usr = await usuarios.findOne({_id: obj.user});
         if (usr) {
@@ -338,7 +301,7 @@ async function getPerfil(token) {
 
 async function deletePerfil(token){
     const usuarios = db.getBD().collection("usuarios");
-    const obj = validarToken(token);
+    const obj = jwt.validarToken(token);
     if(obj && !obj['guest']) {
         const res = await usuarios.deleteOne({_id: obj.user});
         if(res['deletedCount'] > 0){
@@ -367,7 +330,7 @@ async function validar_respuesta(token, res, newpassword){
 
     try{
         const usuarios = db.getBD().collection("usuarios");
-        const obj = validarToken(token);
+        const obj = jwt.validarToken(token);
         if( obj ){
             const user = await usuarios.findOne({_id: obj.user});
 

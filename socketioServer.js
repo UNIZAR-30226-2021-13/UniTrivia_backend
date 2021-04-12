@@ -1,9 +1,12 @@
+const http = require('http');
 const config = require('./config');
+const socketio = require('socket.io');
+const jwt = require('utils/JWT');
 
 class SocketioServer{
     constructor(expressServer, port) {
         this.server = http.createServer(expressServer);
-        this.io = require('socket.io')(server);
+        this.io = new socketio.Server(this.server);
         this.port = port
 
         this.configurar();
@@ -11,10 +14,18 @@ class SocketioServer{
 
     configurar(){
         this.io.use((socket, next) =>{
-            //TODO. Implementar función de validación del usuario
-            const jwt = socket.request.headers['jwt'];
+            try {
+                const token = socket.request.headers['jwt'];
+                const obj = jwt.validarToken(token);
 
-            next();
+                if (obj) {
+                    socket.username = obj['user'];
+                } else {
+                    next(new Error("Usuario desconocido"));
+                }
+            }catch (err){
+                next(new Error("Usuario desconocido"));
+            }
         });
 
         this.io.on('connection', socket => {
@@ -22,11 +33,11 @@ class SocketioServer{
             const operacion = socket.request.headers['operacion'];
             const sala = socket.request.headers['sala'];
 
-            if(operacion === 'unirseSala'){
+            if(operacion === 'crearSala'){
                 //TODO actualizar cache
                 //TODO join room
             } else {
-                if(operacion === 'crearSala'){
+                if(operacion === 'unirseSala'){
                     //TODO actualizar cache
                 } else if(operacion === 'buscarPartida'){
                     //TODO actualizar cache
