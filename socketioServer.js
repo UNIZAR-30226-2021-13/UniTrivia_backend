@@ -80,8 +80,7 @@ class SocketioServer{
             });
 
             socket.on('mensaje', (msg) => {
-                //TODO implementar el chat
-                console.log(msg)
+                socket.to('idSala').emit('chat', {usuario: socket.username, msg: msg});
             });
         });
     }
