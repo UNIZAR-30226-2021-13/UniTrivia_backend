@@ -253,13 +253,13 @@ const profileGET = ({ jwt }) => new Promise(
 *
 * username String 
 * res String 
-* newUnderscorepassword String 
+* newpassword String
 * returns String
 * */
-const recoverPassword = ({ jwt, res, newpassword }) => new Promise(
+const recoverPassword = ({ username, res, newpassword }) => new Promise(
   async (resolve, reject) => {
     try {
-      const code = await modelo.Usuarios.validar_respuesta(jwt,res,newpassword);
+      const code = await modelo.Usuarios.validar_respuesta(username,res,newpassword);
       switch (code){
           case 0:
               logger.info("RECUPERACIÓN DE PASSWORD: OK");
@@ -293,6 +293,32 @@ const recoverPassword = ({ jwt, res, newpassword }) => new Promise(
     }
   },
 );
+
+
+
+const recoverQuestion = ({ username }) => new Promise(
+    async (resolve, reject) => {
+        try {
+            const obj = await modelo.Usuarios.recoverQuestion(username);
+            switch (obj['code']){
+                case 0: // OK
+                    resolve(Service.successResponse(obj['data'], 200));
+                    break;
+                case 1: //ERROR NO USUARIO
+                    reject(Service.rejectResponse({code: 2, message: "No existe el usuario"},500));
+                    break;
+                default: //ERROR BD
+                    reject(Service.rejectResponse({code: -1, message: "Error desconocido"},500));
+                    break;
+            }
+        } catch (e) {
+            reject(Service.rejectResponse(
+                {code: -1, message: "Error desconocido"},500
+            ));
+        }
+    },
+);
+
 /**
 * Se le pasa comos parámetros el nombre de usuario, la contraseña en texto plano, el email la pregunta de seguridad y la respuesta a dicha presgunta.  Devuelve un mensaje de confirmación de caso de poder crear el usuario y un error en caso de no poder crearlo. 
 *
@@ -332,5 +358,6 @@ module.exports = {
   profileDELETE,
   profileGET,
   recoverPassword,
+  recoverQuestion,
   register,
 };

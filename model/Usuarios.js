@@ -308,40 +308,34 @@ async function deletePerfil(token){
 /**
  * Función para validar la respuesta dada del usuario en cuestion
  *
- * @param token Token de sesión del usuario
+ * @param username Nombre del usuario
  * @param res Respuesta dada
  * @param newpassword Nueva contraseña que se establecerá si coincide la respuesta
  * @return {number} 0 si la respuesta es correcta y consigue cambiar la contraseña, 1 si es incorrecta, 2 si error
  *          en la base de datos, 3 si acceso no autorizado y 4 si respuesta correcta pero no se ha podido cambiar
  *          la contraseña
  */
-async function validar_respuesta(token, res, newpassword){
+async function validar_respuesta(username, res, newpassword){
     let ok = 0;
 
     try{
         const usuarios = db.getBD().collection("usuarios");
-        const obj = jwt.validarToken(token);
-        if( obj ){
-            const user = await usuarios.findOne({_id: obj.user});
+        const user = await usuarios.findOne({_id: username});
 
 
-            if( res.toUpperCase() === user.res.toUpperCase() ){
-                const salt = bcrypt.genSaltSync(10);
-                const hash = bcrypt.hashSync(newpassword,salt);
-                const res = await usuarios.updateOne({_id: obj.user}, {$set: {hash: hash}});
-                if(res) {
-                    ok = 0;
-                }
-                else {
-                    logger.error("Respuesta correcta, pero no se ha podido cambiar contrasenya");
-                    ok = 4;
-                }
-            }else{
-                ok = 1;
+        if( res.toUpperCase() === user.res.toUpperCase() ){
+            const salt = bcrypt.genSaltSync(10);
+            const hash = bcrypt.hashSync(newpassword,salt);
+            const res = await usuarios.updateOne({_id: username}, {$set: {hash: hash}});
+            if(res) {
+                ok = 0;
+            }
+            else {
+                logger.error("Respuesta correcta, pero no se ha podido cambiar contrasenya");
+                ok = 4;
             }
         }else{
-            logger.error("Usuario no identificado");
-            ok = 3;
+            ok = 1;
         }
     }catch(e){
         logger.error("Error al validar respuesta: error en la BD.", e);
@@ -351,5 +345,28 @@ async function validar_respuesta(token, res, newpassword){
     return ok;
 }
 
+
+/**
+ *
+ * @param username Nombre de usuario del que obtener la respuesta de seguridad
+ * @returns {Promise<{code: number, data: *}|{code: number, data: null}>}
+ *              Devuelve 0 si ok, 1 si no existe, 2 si error bd.
+ *              Si es 0, devuelve la pregunta de seguridad del usuario, si no null.
+ */
+async function recoverQuestion(username) {
+    const usuarios = db.getBD().collection("usuarios");
+    try {
+        const usr = await usuarios.findOne({_id: username});
+        if (usr) {
+            return {code: 0, data: usr['preg']};
+        } else {
+            return {code: 1, data: null};
+        }
+    }catch (e) {
+        return {code: 2, data: null};
+    }
+}
+
 module.exports = {registrar, logear, invitado, modificar_ficha, modificar_banner,
-                    modificar_avatar, modificar_pass,getPerfil, deletePerfil, validar_respuesta}
+                    modificar_avatar, modificar_pass,getPerfil, deletePerfil,
+                    validar_respuesta, recoverQuestion}

@@ -1,6 +1,6 @@
 const http = require('http');
 const socketio = require('socket.io');
-const jwt = require('utils/JWT');
+const jwt = require('./utils/JWT');
 
 class SocketioServer{
     constructor(expressServer, port) {

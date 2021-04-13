@@ -11,8 +11,8 @@ const bodyParser = require('body-parser');
 const { OpenApiValidator } = require('express-openapi-validator');
 const logger = require('./logger');
 const config = require('./config');
+const SocketioServer = require('./socketioServer');
 
-let io = undefined;
 
 class ExpressServer {
   constructor(port, openApiYaml) {
