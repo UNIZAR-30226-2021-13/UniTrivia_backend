@@ -157,10 +157,40 @@ paths:
       tags:
       - Usuario
       x-eov-operation-handler: controllers/UsuarioController
+  /login/recover/question:
+    get:
+      description: |
+        Se le pasa como parámetros el nombre de usuario en texto plano.
+        Devuelve un mensaje con la pregunta de seguridad del usuario si existe, sino un error.
+      operationId: recoverQuestion
+      parameters:
+      - explode: false
+        in: header
+        name: username
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/txt:
+              schema:
+                type: string
+          description: Contraseña cambiada exitosamente
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Error al cambiar contraseña
+      tags:
+      - Usuario
+      x-eov-operation-handler: controllers/UsuarioController
   /login/recover/password:
     post:
       description: |
-        Se le pasa comos parámetros el nombre de usuario, la respuesta a la pregunta de seguridad y
+        Se le pasa como parámetros el nombre de usuario, la respuesta a la pregunta de seguridad y
         la contraseña nueva en texto plano.
 
         Devuelve un mensaje de confirmación de caso de que la respuesta coincida con la proporcionda y se
@@ -169,7 +199,7 @@ paths:
       parameters:
       - explode: false
         in: header
-        name: jwt
+        name: username
         required: true
         schema:
           type: string
@@ -201,8 +231,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
           description: Error al cambiar contraseña
-      security:
-      - jwt: []
       tags:
       - Usuario
       x-eov-operation-handler: controllers/UsuarioController
