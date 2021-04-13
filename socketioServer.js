@@ -64,6 +64,13 @@ class SocketioServer{
                 //TODO broadcast a todos para informar
             });
 
+            socket.on('posiblesJugadas', (dado) => {
+                //TODO explorar los posibles movimientos del usuario
+                //     que tiene el turno moviendo dado casillas y devolver
+                //      la lista de casillas que se pueden visitar.
+                console.log(dado)
+            });
+
             socket.on('actualizarJugada', (payload) => {
                 //TODO actualizar cache (casilla + quesitos + cambiar turno)
                 //TODO broadcast a todos para informar
