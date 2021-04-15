@@ -25,6 +25,28 @@ class NodoJugador{
 }
 
 class NodoJuego{
+    set turno(value) {
+        this._turno = value;
+    }
+
+    set jugadores(value) {
+        this._jugadores = value;
+    }
+
+    set nJugadores(value) {
+        this._nJugadores = value;
+    }
+    get turno() {
+        return this._turno;
+    }
+
+    get jugadores() {
+        return this._jugadores;
+    }
+
+    get nJugadores() {
+        return this._nJugadores;
+    }
     /**
      * Constructor
      *
@@ -33,9 +55,9 @@ class NodoJuego{
      * @param {number} nJugadores Número de componentes del array jugadores
      */
     constructor(turno, jugadores, nJugadores){
-        this.turno = turno;
-        this.jugadores = jugadores;
-        this.nJugadores = nJugadores;
+        this._turno = turno;
+        this._jugadores = jugadores;
+        this._nJugadores = nJugadores;
         //this.mutex = new Mutex();
     }
 }
@@ -361,7 +383,7 @@ async function comenzarPartida(id_sala){
             return await sala.mutex.runExclusive(async () => {
                 if(sala.nJugadores < config.MIN_JUGADORES){
                     logger.error('Error al comenzar partida, no hay jugadores suficientes');
-                    return 3;
+                    return {code: 3, info: ""+sala.nJugadores};
                 }
                 let jugadores = []
                 sala.jugadores.forEach(function(jugador, index, array){
@@ -375,16 +397,16 @@ async function comenzarPartida(id_sala){
                 }else{
                     salasPriv.del(id_sala);
                 }
-                return 0;
+                return {code: 0, info: partida.turno};
 
             });
         }else{
             logger.error('Error al comenzar partida, no existe la partida');
-            return 2;
+            return {code: 2, info: "No existe"};
         }
     } catch(e) {
         logger.error('Error al comenzar partida', e);
-        return 1;
+        return {code: 1, info: "Error desconocido"};
     }
 }
 
