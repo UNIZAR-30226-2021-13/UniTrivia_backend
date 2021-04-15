@@ -1,6 +1,7 @@
 const http = require('http');
 const socketio = require('socket.io');
 const jwt = require('./utils/JWT');
+const cache = require('./utils/ServerCache');
 
 class SocketioServer{
     constructor(expressServer, port) {
@@ -27,36 +28,61 @@ class SocketioServer{
             }
         });
 
-        this.io.on('connection', socket => {
+        //TODO: ojo con los async
+        this.io.on('connection',  async (socket) => {
             console.log("Nuevo Cliente")
-            const operacion = socket.request.headers['operacion'];
-            const idSala = socket.request.headers['sala'];
+
+            const operacion = socket.request.headers['operacion']; //TODO: si el campo es null, seria un problema?
+            let idSala = socket.request.headers['sala'];
+            const usuario = socket['username'];
+            const priv = socket.request.headers['priv'] === 'true';
 
             if(operacion === 'crearSala'){
-                //TODO actualizar cache
-                //TODO join room
+                let res = cache.crearSala(usuario, priv);
+                if(res.code === 0){
+                    socket.join(res.sala);
+                    idSala = res.sala;
+                } else {
+                    socket.disconnect(true);
+                }
             } else {
+                let res = undefined;
                 if(operacion === 'unirseSala'){
-                    //TODO actualizar cache
+                    res = await cache.unirseSala(idSala, usuario);
                 } else if(operacion === 'buscarPartida'){
-                    //TODO actualizar cache
+                    res = await cache.buscarPartida(usuario);
                 }else{
-                    //TODO error
+                    socket.disconnect(true);
+                }
+                if(res !== undefined && res.code === 0){
+                    socket.join(res.sala);
+                    idSala = res.sala;
+                    socket.to(res.sala).emit('nuevoJugador', usuario); // no emite al propio socket
+                    //TODO obtener el nombre e imgs del resto de jugadores para enviarlas a frontend
+
+                } else {
+                    socket.disconnect(true);
                 }
 
-                //TODO broadcast indicando union a sala ('nuevoJugador')
-                //TODO join room
-                //TODO obtener el nombre e imgs del resto de jugadores para enviarlas a frontend
             }
 
 
             //TODO considerar posibles casos de error al actualizar para condicionar la respuesta con un
             // codigo por ejemplo
 
-            socket.on('abandonarSala', () => {
-                //TODO actualizar cache
-                //TODO broadcast al resto de usuarios para indicar que un usuario ha abandonado la partida a frontend
-                // Si nuevo lider tambien informarlo en el mensaje
+            socket.on('abandonarSala', async () => {
+                let res = await cache.abandonarSala(idSala, usuario)
+                if( res.code === 0){
+                    socket.leave(idSala);
+                    let lider = res.nuevoLider;
+                    if(lider === ''){
+                        socket.to(idSala).emit('cambioLider', {usuario, lider});
+                    } else {
+                        socket.to(idSala).emit('abandonarSala', usuario);
+                    }
+                } else {
+                    socket.disconnect(true);
+                }
             });
 
             socket.on('comenzarPartida', () => {
@@ -87,8 +113,26 @@ class SocketioServer{
             });
 
             socket.on('mensaje', (msg) => {
-                socket.to(idSala).emit('chat', {usuario: socket.username, msg: msg});
+                socket.to(idSala).emit('chat', {usuario: usuario, msg: msg});
             });
+
+            socket.on('disconnect', async () => {
+                let res = await cache.abandonarSala(idSala, usuario)
+                if( res.code === 0){
+                    socket.leave(idSala);
+                    let lider = res.nuevoLider;
+                    if(lider === ''){
+                        socket.to(idSala).emit('cambioLider', {usuario, lider});
+                    } else {
+                        socket.to(idSala).emit('abandonarSala', usuario);
+                    }
+                } else if(cache.abandonarPartida(idSala, usuario) === 0){
+                    //TODO poner lo mismo que en socket.on('abandonarPartida')
+                } else {
+                    socket.disconnect(true);
+                }
+            });
+
         });
     }
 

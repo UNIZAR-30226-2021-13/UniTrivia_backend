@@ -102,6 +102,7 @@ function stop() {
  * Función para crear una sala con el líder de la sala
  * @param {string} usuario Usuario líder de la sala
  * @param {boolean} priv True si la sala es privada y false en caso contrario
+ * @returns {{code: number, sala: string}}
  */
 function crearSala(usuario, priv){
     try{
@@ -199,6 +200,7 @@ async function buscarPartida(usuario){
  * Función para obandonar la sala o echar a un jugador de ella
  * @param {string} id_sala Identificador de la sala
  * @param {string} usuario Usuario a echar de la sala
+ * @returns {Promise<{code: number, nuevoLider: string}|{code: number, nuevoLider: NodoJugador|string|*}|{code: number, nuevoLider: string}|{code: number, nuevoLider: string}|{code: number, nuevoLider: string}>}
  */
 async function abandonarSala(id_sala, usuario){
     try{
@@ -206,45 +208,51 @@ async function abandonarSala(id_sala, usuario){
         if(salasPriv.has(id_sala)){
             value = salasPriv.get(id_sala);
             if(value === undefined){
-                return 1;
+                return {code: 1, nuevoLider: ''};
             } else {
-                return await value.mutex.runExclusive(async () => {
+                if(value.lider === usuario){
+                    let res = await borrarSala(id_sala);
+                    return {code: res, nuevoLider: ''};
+                } else {
+                    return await value.mutex.runExclusive(async () => {
 
-                    let index = -1;
-                    for (let i = 0; i < value.jugadores.length && index < 0; i++) {
-                        if (value.jugadores[i] === usuario) {
-                            index = i;
+                        let index = -1;
+                        for (let i = 0; i < value.jugadores.length && index < 0; i++) {
+                            if (value.jugadores[i] === usuario) {
+                                index = i;
+                            }
                         }
-                    }
-                    if (index >= 0 && value.nJugadores > 1 && value.jugadores[index] === usuario) {
-                        value.jugadores.splice(index, 1);
-                        value.nJugadores--;
-                        value.lider = value.jugadores[0];
-                        return 0;
+                        if (index >= 0 && value.nJugadores > 1 && value.jugadores[index] === usuario) {
+                            value.jugadores.splice(index, 1);
+                            value.nJugadores--;
+                            value.lider = value.jugadores[0];
+                            return {code: 0, nuevoLider: value.jugadores[0]};
 
-                    } else if(index >= 0 && value.nJugadores > 1){
-                        value.jugadores.splice(index, 1);
-                        value.nJugadores--;
-                        return 0;
+                        } else if(index >= 0 && value.nJugadores > 1){
+                            value.jugadores.splice(index, 1);
+                            value.nJugadores--;
+                            return {code: 0, nuevoLider: ''};
 
-                    } else if(index >= 0 && value.nJugadores <= 1) {
-                        value.mutex.cancel();
-                        salasPriv.del(id_sala);
-                        return 0;
+                        } else if(index >= 0 && value.nJugadores <= 1) {
+                            value.mutex.cancel();
+                            salasPriv.del(id_sala);
+                            return {code: 0, nuevoLider: ''};
 
-                    } else{
-                        return 1;
-                    }
-                });
+                        } else{
+                            return {code: 1, nuevoLider: ''};
+                        }
+                    });
+                }
             }
         } else if (salasPub.has(id_sala)){
             value = salasPub.get(id_sala);
             if(value === undefined){
-                return 1;
+                return {code: 1, nuevoLider: ''};
             } else {
                 //console.log(value.jugadores)
                 if(value.lider === usuario){
-                    return borrarSala(id_sala);
+                    let res = await borrarSala(id_sala);
+                    return {code: res, nuevoLider: ''};
                 } else {
                     return await value.mutex.runExclusive(async () => {
                         let index = -1;
@@ -257,29 +265,30 @@ async function abandonarSala(id_sala, usuario){
                             value.jugadores.splice(index, 1);
                             value.nJugadores--;
                             value.lider = value.jugadores[0];
-                            return 0;
+                            return {code: 0, nuevoLider: value.jugadores[0]};
 
                         } else if(index >= 0 && value.nJugadores > 1){
                             value.jugadores.splice(index, 1);
                             value.nJugadores--;
-                            return 0;
+                            return {code: 0, nuevoLider: ''};
 
                         } else if(index >= 0 && value.nJugadores <= 1) {
                             value.mutex.cancel();
                             salasPub.del(id_sala);
-                            return 0;
+                            return {code: 0, nuevoLider: ''};
 
                         } else{
-                            return 1;
+                            return {code: 1, nuevoLider: ''};
                         }
                     });
                 }
             }
         } else {
-            return 1;
+            return {code: 1, nuevoLider: ''};
         }
     } catch (e) {
         logger.error('Error al abandonar sala', e)
+        return {code: 1, nuevoLider: ''};
     }
 }
 
