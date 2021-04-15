@@ -58,7 +58,7 @@ class SocketioServer{
                     socket.join(res.sala);
                     idSala = res.sala;
                     socket.to(res.sala).emit('nuevoJugador', usuario); // no emite al propio socket
-                    //TODO obtener el nombre e imgs del resto de jugadores para enviarlas a frontend
+                    socket.emit('cargarJugadores', cache.obtenerJugadores(idSala));
 
                 } else {
                     socket.disconnect(true);
