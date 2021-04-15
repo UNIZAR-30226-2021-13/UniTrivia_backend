@@ -139,6 +139,7 @@ async function unirseSala(id_sala, usuario){
                 return await value.mutex.runExclusive(async () => {
                     if(value.nJugadores < config.MAX_JUGADORES) {
                         value.nJugadores++;
+                        //TODO: comprobar que no esté
                         value.jugadores.push(usuario);
                         //console.log(value.jugadores)
                         return {code:0 , sala: id_sala};
