@@ -6,6 +6,7 @@ const config = require('../config')
 let salasPub = null; //NodeCache con las salas publicas pendientes de empezar
 let salasPriv = null; //NodeCache con las salas privadas pendientes de empezar
 let salasJuego = null; //NodeCache con las salas en las que actualmente se está jugando
+let usuariosEnSala = null; //NodeCache con los usuarios y las salas en las que están
 
 class NodoJugador{
     /**
@@ -98,6 +99,7 @@ function crear(){
         salasPub = new NodeCache({maxKeys: 100, useClones: false});
         salasPriv = new NodeCache({maxKeys: 20, useClones: false});
         salasJuego = new NodeCache({stdTTL: 72000, useClones: false});
+        usuariosEnSala = new NodeCache({useClones: false});
 
     } catch(err){
         logger.error("Error al crear la memoria cache", err);
@@ -116,6 +118,64 @@ function stop() {
 
     } catch(err){
         logger.error("Error al terminar la memoria cache", err);
+    }
+}
+
+/**
+ * Función para añadir un usuario si no existe a la cache de usuarios en salas
+ * @param usuario Nombre del usuario
+ * @param idSala Id de la sala
+ * @returns {number}
+ */
+
+function addUser(usuario, idSala) {
+    try {
+        if(!usuariosEnSala.has(usuario)){
+            usuariosEnSala.set(usuario, idSala);
+            return 0;
+        } else{
+            return 1;
+        }
+
+    } catch(err){
+        logger.error("Error al añadir usuario", err);
+        return 1;
+    }
+}
+
+
+/**
+ * Función para borrar un usuario de la caché de usuarios en salas
+ * @param usuario Nombre del usuario
+ * @returns {number}
+ */
+function deleteUser(usuario) {
+    try {
+        if(usuariosEnSala.has(usuario)) {
+            usuariosEnSala.del(usuario);
+        }
+        return 0;
+
+    } catch(err){
+        logger.error("Error al añadir usuario", err);
+        return 1;
+    }
+}
+
+/**
+ * Función para obtener la sala en la que está un usuario
+ *
+ * @param usuario
+ * @returns {{code: number, sala}|{code: number, sala: string}|{code: number, sala: string}}
+ */
+function salaDelUsuario(usuario){
+    try {
+        return usuariosEnSala.has(usuario) ? {code: 0, sala: usuariosEnSala.get(usuario) }
+                : {code: 1, sala: '' };
+
+    } catch(err){
+        logger.error("Error al añadir usuario", err);
+        return {code: 1, sala: '' };
     }
 }
 
@@ -159,7 +219,9 @@ async function unirseSala(id_sala, usuario){
                 return {code:1 , sala: id_sala};
             } else {
                 return await value.mutex.runExclusive(async () => {
-                    if(value.nJugadores < config.MAX_JUGADORES) {
+                    if(value.nJugadores < config.MAX_JUGADORES &&
+                        addUser(usuario, id_sala) === 0) {
+
                         value.nJugadores++;
                         value.jugadores.push(usuario);
                         //console.log(value.jugadores)
@@ -198,6 +260,7 @@ async function unirseSala(id_sala, usuario){
 
 /**
  * Función para unirse a una sala pública alearoria
+ *
  * @param usuario Usuario al que meter en una sala pública
  */
 async function buscarPartida(usuario){
@@ -215,6 +278,38 @@ async function buscarPartida(usuario){
     } catch (e) {
         logger.error('Error al buscar partida', e)
         return {code:1 , sala: ""};
+    }
+}
+
+/**
+ * Función para obtener todos los jugadores de una sala
+ *
+ * @param id_sala Id de la sala
+ * @returns {{code: number, jugadores: []}|{code: number, jugadores: ([]|*)}}
+ */
+function obtenerJugadores(id_sala){
+    try{
+        let value = undefined;
+        if(salasPriv.has(id_sala)){
+            value = salasPriv.get(id_sala);
+            if(value === undefined){
+                return {code:1 , jugadores: []};
+            } else {
+                return {code:0 , jugadores: value.jugadores};
+            }
+        } else if (salasPub.has(id_sala)){
+            value = salasPub.get(id_sala);
+            if(value === undefined){
+                return {code:1 , jugadores: []};
+            } else {
+                return {code:0 , jugadores: value.jugadores};
+            }
+        } else {
+            return {code:1 , jugadores: []};
+        }
+    } catch (e){
+        logger.error('Error al obtener jugadores de la sala', e);
+        return {code:1 , jugadores: []};
     }
 }
 
@@ -248,14 +343,17 @@ async function abandonarSala(id_sala, usuario){
                             value.jugadores.splice(index, 1);
                             value.nJugadores--;
                             value.lider = value.jugadores[0];
+                            deleteUser(usuario);
                             return {code: 0, nuevoLider: value.jugadores[0]};
 
                         } else if(index >= 0 && value.nJugadores > 1){
                             value.jugadores.splice(index, 1);
                             value.nJugadores--;
+                            deleteUser(usuario)
                             return {code: 0, nuevoLider: ''};
 
                         } else if(index >= 0 && value.nJugadores <= 1) {
+                            deleteUser(usuario)
                             value.mutex.cancel();
                             salasPriv.del(id_sala);
                             return {code: 0, nuevoLider: ''};
@@ -287,14 +385,17 @@ async function abandonarSala(id_sala, usuario){
                             value.jugadores.splice(index, 1);
                             value.nJugadores--;
                             value.lider = value.jugadores[0];
+                            deleteUser(usuario)
                             return {code: 0, nuevoLider: value.jugadores[0]};
 
                         } else if(index >= 0 && value.nJugadores > 1){
                             value.jugadores.splice(index, 1);
                             value.nJugadores--;
+                            deleteUser(usuario)
                             return {code: 0, nuevoLider: ''};
 
                         } else if(index >= 0 && value.nJugadores <= 1) {
+                            deleteUser(usuario)
                             value.mutex.cancel();
                             salasPub.del(id_sala);
                             return {code: 0, nuevoLider: ''};
@@ -329,6 +430,7 @@ async function borrarSala(id_sala){
             } else {
                 const release = await value.mutex.acquire();
                 try {
+                    value.jugadores.forEach(usuario => deleteUser(usuario));
                     value.mutex.cancel();
                     salasPriv.del(id_sala);
                 } finally{
@@ -348,6 +450,7 @@ async function borrarSala(id_sala){
             } else {
                 const release = await value.mutex.acquire();
                 try {
+                    value.jugadores.forEach(usuario => deleteUser(usuario));
                     value.mutex.cancel();
                     salasPub.del(id_sala);
                 } finally{
@@ -584,6 +687,8 @@ function borrarPartida(id_partida){
 module.exports =
     {
         crear,
+        obtenerJugadores,
+        salaDelUsuario,
         crearSala,
         unirseSala,
         buscarPartida,

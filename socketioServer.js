@@ -33,7 +33,7 @@ class SocketioServer{
         this.io.on('connection',  async (socket) => {
             console.log("Nuevo Cliente")
 
-            const operacion = socket.request.headers['operacion']; //TODO: si el campo es null, seria un problema?
+            const operacion = socket.request.headers['operacion'];
             let idSala = socket.request.headers['sala'];
             const usuario = socket['username'];
             const priv = socket.request.headers['priv'] === 'true';
@@ -59,7 +59,7 @@ class SocketioServer{
                     socket.join(res.sala);
                     idSala = res.sala;
                     socket.to(res.sala).emit('nuevoJugador', usuario); // no emite al propio socket
-                    //TODO obtener el nombre e imgs del resto de jugadores para enviarlas a frontend
+                    socket.emit('cargarJugadores', cache.obtenerJugadores(idSala));
 
                 } else {
                     socket.disconnect(true);
@@ -77,9 +77,9 @@ class SocketioServer{
                     socket.leave(idSala);
                     let lider = res.nuevoLider;
                     if(lider === ''){
-                        socket.to(idSala).emit('cambioLider', {usuario, lider});
-                    } else {
                         socket.to(idSala).emit('abandonarSala', usuario);
+                    } else {
+                        socket.to(idSala).emit('cambioLider', {usuario, lider});
                     }
                 } else {
                     socket.disconnect(true);
@@ -142,10 +142,11 @@ class SocketioServer{
                     } else {
                         socket.to(idSala).emit('abandonarSala', usuario);
                     }
-                } else if(cache.abandonarPartida(idSala, usuario) === 0){
+                } else if(false){
                     //TODO poner lo mismo que en socket.on('abandonarPartida')
+                    // o mandar un mensaje para poner un timeout de reconexion y si se cumple echarlo
                 } else {
-                    socket.disconnect(true);
+                    //socket.disconnect(true);
                 }
             });
 
