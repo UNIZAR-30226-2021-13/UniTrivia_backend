@@ -48,7 +48,7 @@ class SocketioServer{
                 }
             } else {
                 let res = undefined;
-                if(operacion === 'unirseSala'){
+                if(operacion === 'unirseSala'){ //TODO Falta implementar que pueda volver el usuario
                     res = await cache.unirseSala(idSala, usuario);
                 } else if(operacion === 'buscarPartida'){
                     res = await cache.buscarPartida(usuario);
@@ -123,10 +123,31 @@ class SocketioServer{
                 console.log(payload)
             });
 
-            socket.on('abandonarPartida', () => {
+            socket.on('abandonarPartida', async (fn) => {
                 //TODO actualizar cache
                 //TODO broadcast al resto de usuarios para indicar que un usuario ha abandonado la partida a frontend
                 // Si nuevo lider tambien informarlo en el mensaje
+                let res = await cache.abandonarPartida(idSala,usuario);
+                switch (res){
+                    case '-1':
+                        fn({res: "error", info:"Desconocido"});
+                        break;
+                    case '-2':
+                        fn({res: "error", info:"No se pertence a la sala"});
+                        break;
+                    case '-3':
+                        fn({res: "error", info:"No existe la sala"});
+                        break;
+                    default:
+                        res = res.substring(1);
+                        socket.to(idSala).emit('jugadorSale', usuario);
+                        if(res !== '0'){
+                            socket.to(idSala).emit('turno',res);
+                        }
+                        socket.leave(idSala);
+                        fn({res: "ok", info:""});
+                        break;
+                }
             });
 
             socket.on('mensaje', (msg) => {

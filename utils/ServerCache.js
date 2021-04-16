@@ -9,6 +9,37 @@ let salasJuego = null; //NodeCache con las salas en las que actualmente se está
 let usuariosEnSala = null; //NodeCache con los usuarios y las salas en las que están
 
 class NodoJugador{
+    get nombre() {
+        return this._nombre;
+    }
+
+    set nombre(value) {
+        this._nombre = value;
+    }
+
+    get casilla() {
+        return this._casilla;
+    }
+
+    set casilla(value) {
+        this._casilla = value;
+    }
+
+    get quesitos() {
+        return this._quesitos;
+    }
+
+    set quesitos(value) {
+        this._quesitos = value;
+    }
+
+    get nRestantes() {
+        return this._nRestantes;
+    }
+
+    set nRestantes(value) {
+        this._nRestantes = value;
+    }
     /**
      * Constructor
      *
@@ -18,10 +49,10 @@ class NodoJugador{
      * @param {number} nRestantes Número de quesitos restantes para el jugador
      */
     constructor(nombre, casilla, quesitos, nRestantes){
-        this.nombre = nombre;
-        this.casilla = casilla;
-        this.quesitos = quesitos;
-        this.nRestantes = nRestantes;
+        this._nombre = nombre;
+        this._casilla = casilla;
+        this._quesitos = quesitos;
+        this._nRestantes = nRestantes;
     }
 }
 
@@ -210,7 +241,7 @@ function crearSala(usuario, priv){
  * @param {string} id_sala Identificador de la sala
  * @param {string} usuario Usuario a añadir a la sala
  */
-async function unirseSala(id_sala, usuario){
+async function unirseSala(id_sala, usuario){//TODO Falta implementar que pueda volver el usuario
     try{
         let value = undefined;
         if(salasPriv.has(id_sala)){
@@ -627,41 +658,30 @@ function cambiarTurno(id_partida, jugador){
  * @param id_partida Identificador de la partida a borrar
  * @param jugador
  */
-function abandonarPartida(id_partida, jugador){
+function abandonarPartida(id_partida, jugador){ //TODO Falta implementar que pueda volver el usuario
     try{
         let value = salasJuego.get(id_partida);
         if(value !== undefined){
             const data = value.jugadores.findIndex(t => t.nombre===jugador);
             if(data !== -1){ // Está en la lista
-                value.jugadores.splice(data, 1); // Elimina al usuario
+                let ret = "0";
                 if(value.turno === jugador) { //Era su turno
-
+                    value.turno = value.jugadores[data+1%value.nJugadores].nombre;
+                    ret = value.turno;
                 }
+                value.jugadores.splice(data, 1); // Elimina al usuario
+                return " "+ret;
             }else{//No está en la lista
                 logger.error('Error al abandonar partida, no está el jugador');
-                return 2;
-            }
-
-            if(value.turno === jugador){ // Si era su turno, lo actualiza
-                let actualizado = false;
-                for(let i = 0; i<value.jugadores.length && !actualizado; i++){
-                    if(value.jugadores[i].nombre === jugador){
-                        value.jugadores[i].casilla = casilla;
-                        actualizado = true;
-                    }
-                }
-                return actualizado ? 0 : 1;
-            } else {
-                logger.error('Error al abandonar partida, no es el turno del jugador');
-                return 2;
+                return "-2";
             }
         } else {
             logger.error('Error al abandonar partida, no existe la sala');
-            return 1;
+            return "-3";
         }
     } catch (e) {
         logger.error('Error al abandonar partida', e);
-        return 1;
+        return "-1";
     }
 }
 
