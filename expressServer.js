@@ -49,7 +49,11 @@ class ExpressServer {
       res.status(200);
       res.json(req.query);
     });
-    this.app.get('/*', (req, res) => res.sendFile(path.join(__dirname,'build','index.html')));
+    this.app.get('/Login', (req, res) => res.sendFile(path.join(__dirname,'build','index.html')));
+    this.app.get('/Home', (req, res) => res.sendFile(path.join(__dirname,'build','index.html')));
+    this.app.get('/Menu', (req, res) => res.sendFile(path.join(__dirname,'build','index.html')));
+    this.app.get('/Register', (req, res) => res.sendFile(path.join(__dirname,'build','index.html')));
+    this.app.get('/profile', (req, res) => res.sendFile(path.join(__dirname,'build','index.html')));
 
   }
 
