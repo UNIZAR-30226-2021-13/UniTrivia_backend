@@ -86,22 +86,23 @@ class SocketioServer{
                 }
             });
 
-            socket.on('comenzarPartida', async () => {
+            socket.on('comenzarPartida', async (fn) => {
                 const ok = await cache.comenzarPartida(idSala);
                 switch(ok['code']){
                     case 1: //Error desconocido
-                        socket.emit('error', {tipo: 'Desconocido', cause: ''});
+                        fn({res: "error", info: "Desconocido" });
                         break;
                     case 2: //No existe la partida
-                        socket.emit('error', {tipo: 'Partida no encontrada', causa: ok['info']});
-                        logger.alert('Partida no encontrada en una conexión existente.')
+                        fn({res: "error", info: "Partida no encontrada: " + ok['info']});
+                        logger.alert('Partida no encontrada en una conexión existente.');
                         break;
                     case 3: //Número de jugadores insuficiente
-                        socket.emit('error', {tipo: 'Número jugadores', causa: ok['info']});
+                        fn({res: "error", info: "Número jugadores insuficiente: " + ok['info']});
                         break;
                     case 0: //OK
+                        fn({res: "ok", info: ""});
                         socket.to(idSala).emit('comienzoPartida',"");
-                        socket.to(idSala).emit('turno',ok['info'])
+                        this.io.in(idSala).emit('turno',ok['info']);
                         break;
                 }
             });
