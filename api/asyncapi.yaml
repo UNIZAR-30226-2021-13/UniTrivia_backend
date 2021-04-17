@@ -1,0 +1,66 @@
+asyncapi: 2.0.0
+info:
+  title: UniTrivia
+  version: 1.0.0
+  description: Sección de la api de UniTrivia para la
+              funcionalidad del juego.
+  license:
+    name: MIT License
+    url: https://opensource.org/licenses/mit-license.php
+servers:
+  production:
+    url: unitrivia.heroku.com
+    protocol: socket.io
+    description: Socket.io
+    variables:
+      port:
+        description: Secure connection (TLS) is available
+                      through port 443.
+        default: '80'
+channels:
+  /api/partida: 
+    subscribe:
+      message:
+        $ref: '#/components/messages/chat'
+    publish:
+      message:
+        oneOf:
+        - $ref: '#/components/messages/abandonarSala'
+        - $ref: '#/components/messages/comenzarPartida'   
+        - $ref: '#/components/messages/posiblesJugadas'   
+        - $ref: '#/components/messages/actualizarJugada'   
+        - $ref: '#/components/messages/abandonarPartida'   
+        - $ref: '#/components/messages/mensaje'     
+components:
+  messages:
+    abandonarSala:
+      payload:
+        type: string
+    comenzarPartida:
+      payload:
+        type: string
+    posiblesJugadas:
+      payload:
+        type: string
+    actualizarJugada:
+      payload:
+        type: string
+    abandonarPartida:
+      payload:
+        type: string
+    mensaje:
+      payload:
+        type: string
+        description: Mensaje que un usuario quiere enviar por el chat
+    chat:
+      payload:
+        type: object
+        description: Evento recibido cuando alguien envía un mensaje
+                      por el chat. Contiene quién lo envía y qué envía.
+        properties:
+          usuario:
+            type: string
+            description: Nombre de usuario que envía el mensaje
+          msg:
+            type: string
+            description: Mensaje de texto enviado por el usuario
