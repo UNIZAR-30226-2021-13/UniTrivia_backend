@@ -30,7 +30,7 @@ class SocketioServer{
         });
 
         //TODO: ojo con los async
-        this.io.on('connection',  async (socket) => {
+        this.io.of('/api/partida').on('connection',  async (socket) => {
             console.log("Nuevo Cliente")
 
             const operacion = socket.request.headers['operacion'];
@@ -38,33 +38,39 @@ class SocketioServer{
             const usuario = socket['username'];
             const priv = socket.request.headers['priv'] === 'true';
 
-            if(operacion === 'crearSala'){
-                let res = cache.crearSala(usuario, priv);
-                if(res.code === 0){
-                    socket.join(res.sala);
-                    idSala = res.sala;
-                } else {
-                    socket.disconnect(true);
-                }
+            const sala = cache.salaDelUsuario(usuario);
+            if(sala.code === 0){
+                //TODO Falta implementar que pueda volver el usuario
+
             } else {
-                let res = undefined;
-                if(operacion === 'unirseSala'){ //TODO Falta implementar que pueda volver el usuario
-                    res = await cache.unirseSala(idSala, usuario);
-                } else if(operacion === 'buscarPartida'){
-                    res = await cache.buscarPartida(usuario);
-                }else{
-                    socket.disconnect(true);
-                }
-                if(res !== undefined && res.code === 0){
-                    socket.join(res.sala);
-                    idSala = res.sala;
-                    socket.to(res.sala).emit('nuevoJugador', usuario); // no emite al propio socket
-                    socket.emit('cargarJugadores', cache.obtenerJugadores(idSala));
-
+                if (operacion === 'crearSala') {
+                    let res = cache.crearSala(usuario, priv);
+                    if (res.code === 0) {
+                        socket.join(res.sala);
+                        idSala = res.sala;
+                    } else {
+                        socket.disconnect(true);
+                    }
                 } else {
-                    socket.disconnect(true);
-                }
+                    let res = undefined;
+                    if (operacion === 'unirseSala') {
+                        res = await cache.unirseSala(idSala, usuario);
+                    } else if (operacion === 'buscarPartida') {
+                        res = await cache.buscarPartida(usuario);
+                    } else {
+                        socket.disconnect(true);
+                    }
+                    if (res !== undefined && res.code === 0) {
+                        socket.join(res.sala);
+                        idSala = res.sala;
+                        socket.to(res.sala).emit('nuevoJugador', usuario); // no emite al propio socket
+                        socket.emit('cargarJugadores', cache.obtenerJugadores(idSala));
 
+                    } else {
+                        socket.disconnect(true);
+                    }
+
+                }
             }
 
 
@@ -74,14 +80,15 @@ class SocketioServer{
             socket.on('abandonarSala', async (fn) => {
                 let res = await cache.abandonarSala(idSala, usuario)
                 if( res.code === 0){
-                    socket.leave(idSala);
                     let lider = res.nuevoLider;
                     if(lider === ''){
-                        socket.to(idSala).emit('abandonarSala', usuario);
+                        socket.to(idSala).emit('abandonoSala', usuario);
                     } else {
                         socket.to(idSala).emit('cambioLider', {usuario, lider});
                     }
+                    socket.leave(idSala);
                     fn(0);
+
                 } else {
                     //socket.disconnect(true);
                     fn(1);
@@ -89,6 +96,7 @@ class SocketioServer{
             });
 
             socket.on('comenzarPartida', async (fn) => {
+                //TODO solo el lider puede comenzar partida
                 const ok = await cache.comenzarPartida(idSala);
                 switch(ok['code']){
                     case 1: //Error desconocido
@@ -116,20 +124,20 @@ class SocketioServer{
                 console.log(dado)
             });
 
-            socket.on('actualizarJugada', (payload) => {
+            socket.on('actualizarJugada', (input) => {
                 //TODO actualizar cache (casilla + quesitos + cambiar turno)
                 //TODO broadcast a todos para informar
                 //TODO en caso de victoria broadcast de fin de partida para posterior mensaje a la API rest para actualizar
                 // monedas e historial de partidas y volver al menú principal y borrar partida de la cache
 
-                console.log(payload)
+                console.log(input)
             });
 
             socket.on('abandonarPartida', async (fn) => {
                 //TODO actualizar cache
                 //TODO broadcast al resto de usuarios para indicar que un usuario ha abandonado la partida a frontend
                 // Si nuevo lider tambien informarlo en el mensaje
-                let res = await cache.abandonarPartida(idSala,usuario);
+                let res = await cache.abandonarPartida(idSala, usuario);
                 switch (res){
                     case '-1':
                         fn({res: "error", info:"Desconocido"});
@@ -144,7 +152,7 @@ class SocketioServer{
                         res = res.substring(1);
                         socket.to(idSala).emit('jugadorSale', usuario);
                         if(res !== '0'){
-                            socket.to(idSala).emit('turno',res);
+                            socket.to(idSala).emit('turno', res);
                         }
                         socket.leave(idSala);
                         fn({res: "ok", info:""});
@@ -164,7 +172,7 @@ class SocketioServer{
                     if(lider === ''){
                         socket.to(idSala).emit('cambioLider', {usuario, lider});
                     } else {
-                        socket.to(idSala).emit('abandonarSala', usuario);
+                        socket.to(idSala).emit('abandonoSala', usuario);
                     }
                 } else if(false){
                     //TODO poner lo mismo que en socket.on('abandonarPartida')

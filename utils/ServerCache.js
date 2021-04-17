@@ -202,7 +202,7 @@ function deleteUser(usuario) {
 function salaDelUsuario(usuario){
     try {
         return usuariosEnSala.has(usuario) ? {code: 0, sala: usuariosEnSala.get(usuario) }
-                : {code: 1, sala: '' };
+                : {code: 0, sala: '' };
 
     } catch(err){
         logger.error("Error al añadir usuario", err);
@@ -226,6 +226,7 @@ function crearSala(usuario, priv){
         } else {
             salasPub.set(id_sala, valor);
         }
+        addUser(usuario, id_sala);
         return {code:0 , sala: id_sala};
 
     } catch (e){
@@ -269,7 +270,9 @@ async function unirseSala(id_sala, usuario){//TODO Falta implementar que pueda v
                 return {code:1 , sala: id_sala};
             } else {
                 return await value.mutex.runExclusive(async () => {
-                    if(value.nJugadores < 6) {
+                    if(value.nJugadores < config.MAX_JUGADORES &&
+                        addUser(usuario, id_sala) === 0) {
+
                         value.nJugadores++;
                         value.jugadores.push(usuario);
                         //console.log(value.jugadores)
@@ -515,6 +518,8 @@ async function comenzarPartida(id_sala){
         const sala = salasPub.has(id_sala) ? salasPub.get(id_sala) : salasPriv.get(id_sala);
         if (sala){
             return await sala.mutex.runExclusive(async () => {
+                console.log(sala.jugadores)
+                console.log(sala.nJugadores)
                 if(sala.nJugadores < config.MIN_JUGADORES){
                     logger.error('Error al comenzar partida, no hay jugadores suficientes');
                     return {code: 3, info: ""+sala.nJugadores};

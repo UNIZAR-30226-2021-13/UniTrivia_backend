@@ -52,7 +52,8 @@ async function testSalas(){
             return 1;
         }
 
-        if((await cache.abandonarSala(res6.sala, usuario6))!== 0){
+        const res7 = await cache.abandonarSala(res6.sala, usuario6);
+        if(res7.code !== 0){
             logger.error('Error test salas: 7')
             return 1;
         }
@@ -62,12 +63,14 @@ async function testSalas(){
             return 1;
         }
 
-        if((await cache.comenzarPartida(res1.sala))!== 0){
+        const res9 = await cache.comenzarPartida(res1.sala);
+        if(res9.code !== 0){
             logger.error('Error test salas: 9')
             return 1;
         }
 
-        if((await cache.comenzarPartida(res5.sala)) === 0){
+        const res10 = await cache.comenzarPartida(res5.sala);
+        if(res10.code === 0){
             logger.error('Error test salas: 10')
             return 1;
         }
