@@ -71,7 +71,7 @@ class SocketioServer{
             //TODO considerar posibles casos de error al actualizar para condicionar la respuesta con un
             // codigo por ejemplo
 
-            socket.on('abandonarSala', async () => {
+            socket.on('abandonarSala', async (fn) => {
                 let res = await cache.abandonarSala(idSala, usuario)
                 if( res.code === 0){
                     socket.leave(idSala);
@@ -81,8 +81,10 @@ class SocketioServer{
                     } else {
                         socket.to(idSala).emit('cambioLider', {usuario, lider});
                     }
+                    fn(0);
                 } else {
-                    socket.disconnect(true);
+                    //socket.disconnect(true);
+                    fn(1);
                 }
             });
 
