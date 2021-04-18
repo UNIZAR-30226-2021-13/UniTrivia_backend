@@ -1,5 +1,5 @@
 const logger = require('../logger');
-const cache = require('./ServerCache');
+const cache = require('../utils/ServerCache');
 
 
 /**

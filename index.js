@@ -3,7 +3,7 @@ const logger = require('./logger');
 const ExpressServer = require('./expressServer');
 const bd = require('./utils/DatabaseConnection.js');
 const cache = require('./utils/ServerCache.js');
-const cacheTest = require('./utils/ServerCacheTest.js');
+const cacheTest = require('./tests/ServerCacheTest.js');
 
 const launchServer = async () => {
   try{

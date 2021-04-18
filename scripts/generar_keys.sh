@@ -44,7 +44,7 @@ fi
 echo -n "    Generando certificado a firmar "
 openssl req -new -key "${LOCATION}/mongodb.key" \
             -out "${LOCATION}/mongodb.csr"\
-        -subj "/C=ES/ST=Zaragoza/L=Zaragoza/O=UniGames/CN=10.0.0.1" > /dev/null 2>&1
+        -subj "/C=ES/ST=Zaragoza/L=Zaragoza/O=UniGames" > /dev/null 2>&1
 if [ "$?" -eq 0 ]; then
   echo "✅"
 else
@@ -79,7 +79,7 @@ echo "================================="
 
 DIR="../keys"
 
-echo -n "    Generando clave privada del servidor "
+echo -n "    Generando clave privada del cliente "
 openssl genrsa -out "${DIR}/mongo_key.key" 2048 > /dev/null 2>&1
 if [ "$?" -eq 0 ]; then
   echo "✅"

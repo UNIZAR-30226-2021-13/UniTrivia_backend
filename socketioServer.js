@@ -14,13 +14,15 @@ class SocketioServer{
     }
 
     configurar(){
-        this.io.use((socket, next) =>{
+        this.io.of('/api/partida').use((socket, next) =>{
             try {
                 const token = socket.request.headers['jwt'];
                 const obj = jwt.validarToken(token);
 
                 if (obj) {
                     socket.username = obj['user'];
+                    console.log("Conectado: " + socket.username);
+                    next();
                 } else {
                     next(new Error("Usuario desconocido"));
                 }
@@ -31,14 +33,20 @@ class SocketioServer{
 
         //TODO: ojo con los async
         this.io.of('/api/partida').on('connection',  async (socket) => {
-            console.log("Nuevo Cliente")
 
             const operacion = socket.request.headers['operacion'];
             let idSala = socket.request.headers['sala'];
             const usuario = socket['username'];
             const priv = socket.request.headers['priv'] === 'true';
-
             const sala = cache.salaDelUsuario(usuario);
+
+            console.log("Nuevo Cliente");
+            console.log("operacion = " + operacion);
+            console.log("idSala = " + idSala);
+            console.log("usuario = " + usuario);
+            console.log("priv = " + priv);
+            console.log("sala = " + sala);
+
             if(sala.code === 0){
                 //TODO Falta implementar que pueda volver el usuario
 
@@ -73,6 +81,16 @@ class SocketioServer{
                 }
             }
 
+            console.log("Post-inicio");
+            console.log("operacion = " + operacion);
+            console.log("idSala = " + idSala);
+            console.log("usuario = " + usuario);
+            console.log("priv = " + priv);
+            console.log("sala = " + sala);
+
+            socket.on('obtenerIdSala', async (fn) => {
+                fn(idSala);
+            })
 
             //TODO considerar posibles casos de error al actualizar para condicionar la respuesta con un
             // codigo por ejemplo
