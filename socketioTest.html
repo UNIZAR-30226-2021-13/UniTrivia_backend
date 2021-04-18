@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>Test socketio</title>
+
+  </head>
+
+  <body>
+
+    <button onclick="crearSala()" >Crear sala</button>
+    <button onclick="unirseSala()" >Unirse sala</button>
+    <button onclick="buscarSala()" >Buscar sala</button>
+    <button onclick="abandonarSala()" >Abandonar sala</button>
+    <button onclick="comenzarPartida()" >Comenzar partida</button>
+    <button onclick="terminar()">Cerrar conexion </button>
+
+    <script src="http://localhost:3000/socket.io/socket.io.js"> </script>
+    <script>
+      let token;
+      let conn = undefined;
+      let sala = undefined;
+
+      let xhr = XMLHttpRequest(),
+              method = 'GET',
+              url = 'http://localhost:3000/api/login';
+      xhr.open(method, url, false); // sincrono
+      xhr.setRequestHeader("username", "test");
+      xhr.setRequestHeader("password", "test");
+      xhr.send();
+      token = xhr.responseText;
+
+      conn = io("http://localhost:3000/api/partida",{
+        extraHeaders:{
+          jwt: token,
+          operacion: "crearSala",
+          priv: "true"
+        }
+      });
+
+      conn.on("connect", ()=>{
+
+        conn.emit("obtenerIdSala", (id)=>{
+          console.assert(id !== '' , 'Error obtener idSala');
+          sala = id;
+        });
+
+      })
+
+      conn.on('cambioLider', ({antiguo, nuevo})=>{
+        console.log("Antiguo lider: " + antiguo + " Nuevo: " + nuevo);
+      })
+
+      conn.on('abandonoSala', (user)=>{
+        console.log("Abandona sala: " + user);
+      })
+
+      conn.on('nuevoJugador', (user)=>{
+        console.log("Entra en la sala: " + user);
+      })
+
+      conn.on('cargarJugadores', (users) =>{
+        console.log(users);
+      })
+
+      conn.on('turno', (info) =>{
+        console.log("Turno de: " + info);
+      })
+
+      conn.on('comienzoPartida', () =>{
+        console.log("Comienza la partida");
+      })
+
+      conn.on('chat', ({user, msg})=>{
+        console.log("Mensaje: " + msg + " de " + user);
+      })
+
+      function crearSala(){
+
+      }
+
+      function unirseSala(){
+
+      }
+
+      function buscarSala(){
+
+      }
+
+      function abandonarSala(){
+        conn.emit("abandonarSala", (code)=>{
+          console.log("Al abandonar sala: " + code.toString());
+        })
+      }
+
+      function terminar(){
+        conn.close();
+      }
+
+      function comenzarPartida(){
+        conn.emit("comenzarPartida", (res)=>{
+          console.log("Al comenzar partida: " + res.res + " " + res.info);
+        });
+      }
+  </script>
+  </body>
+</html>
