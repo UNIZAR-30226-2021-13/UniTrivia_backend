@@ -47,13 +47,15 @@ class SocketioServer{
             console.log("priv = " + priv);
             console.log("sala = " + sala);
 
-            if(sala.code === 0){
+            if(sala.sala !== ''){
                 //TODO Falta implementar que pueda volver el usuario
-
             } else {
                 if (operacion === 'crearSala') {
+                    console.log("Entra crear sala")
                     let res = cache.crearSala(usuario, priv);
                     if (res.code === 0) {
+                        console.log("Crea sala: ");
+                        console.log(res)
                         socket.join(res.sala);
                         idSala = res.sala;
                     } else {
@@ -180,6 +182,7 @@ class SocketioServer{
 
             socket.on('mensaje', (msg) => {
                 socket.to(idSala).emit('chat', {usuario: usuario, msg: msg});
+                console.log("Mensaje de "+usuario+": " + msg);
             });
 
             socket.on('disconnect', async () => {

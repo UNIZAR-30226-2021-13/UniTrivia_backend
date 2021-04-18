@@ -33,6 +33,25 @@ http.get({
         conn.on("connect", ()=>{
             assert.notStrictEqual(conn, undefined);
             assert.strictEqual(conn.connected, true);
+
+            conn.emit("obtenerIdSala", (id)=>{
+                assert.notStrictEqual(id, '');
+            });
+
+            conn.emit("comenzarPartida", (res)=>{
+                assert.deepStrictEqual(res, {res: "error", info: "Número jugadores insuficiente: 1"});
+            });
+
+
+            conn.emit("mensaje", "Hola Mundo");
+            conn.on('chat', ({user, msg})=>{
+                assert.strictEqual(user, "");
+            })
+
+            conn.emit("abandonarSala", (code)=>{
+                assert.strictEqual(code, 0);
+                conn.close();
+            })
         })
     })
 });

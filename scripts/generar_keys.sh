@@ -22,7 +22,7 @@ fi
 echo -n "    Generando certificado de CA "
 openssl req -x509 -new -nodes -key "${LOCATION}/rootCA.key" \
         -sha256 -days 1024 -out "${LOCATION}/rootCA.pem" \
-        -subj "/C=ES/ST=Zaragoza/L=Zaragoza/O=UniGames/CN=10.0.0.1" > /dev/null 2>&1
+        -subj "/C=ES/ST=Zaragoza/L=Zaragoza/O=UniGames" > /dev/null 2>&1
 if [ "$?" -eq 0 ]; then
   echo "✅"
 else
@@ -118,5 +118,5 @@ else
 fi
 
 echo "================================="
-echo -n "Los ficheros de la CA y del servidor están en ${LOCATION}"
+echo -n "Los ficheros de la CA y del servidor están en ${LOCATION} "
 echo "y los del cliente en ../keys"
