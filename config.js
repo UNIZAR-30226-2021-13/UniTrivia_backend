@@ -3,7 +3,7 @@ const path = require('path');
 const config = {
   ROOT_DIR: __dirname,
   URL_PORT: process.env.PORT || 3000,
-  URL_PATH: 'https://unitrivia.herokuapp.com',
+  URL_PATH: 'https://unitests.herokuapp.com',
   BASE_VERSION: 'v2',
   CONTROLLER_DIRECTORY: path.join(__dirname, 'controllers'),
   PROJECT_DIR: __dirname,
