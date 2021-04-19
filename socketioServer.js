@@ -7,14 +7,14 @@ const logger = require('./logger');
 class SocketioServer{
     constructor(expressServer, port) {
         this.server = http.createServer(expressServer);
-        this.io = new socketio.Server(this.server);
+        this.io = new socketio.Server(this.server).of('/api/partida');
         this.port = port
 
         this.configurar();
     }
 
     configurar(){
-        this.io.of('/api/partida').use((socket, next) =>{
+        this.io.use((socket, next) =>{
             try {
                 const token = socket.request.headers['jwt'];
                 const obj = jwt.validarToken(token);
@@ -32,7 +32,7 @@ class SocketioServer{
         });
 
         //TODO: ojo con los async
-        this.io.of('/api/partida').on('connection',  async (socket) => {
+        this.io.on('connection',  async (socket) => {
 
             const operacion = socket.request.headers['operacion'];
             let idSala = socket.request.headers['sala'];
@@ -70,6 +70,7 @@ class SocketioServer{
                     } else {
                         socket.disconnect(true);
                     }
+                    console.log(res);
                     if (res !== undefined && res.code === 0) {
                         socket.join(res.sala);
                         idSala = res.sala;
@@ -104,7 +105,7 @@ class SocketioServer{
                     if(lider === ''){
                         socket.to(idSala).emit('abandonoSala', usuario);
                     } else {
-                        socket.to(idSala).emit('cambioLider', {usuario, lider});
+                        socket.to(idSala).emit('cambioLider', {antiguo: usuario, nuevo: lider});
                     }
                     socket.leave(idSala);
                     fn(0);
@@ -131,6 +132,7 @@ class SocketioServer{
                         break;
                     case 0: //OK
                         fn({res: "ok", info: ""});
+                        console.log(ok);
                         socket.to(idSala).emit('comienzoPartida',"");
                         this.io.in(idSala).emit('turno',ok['info']);
                         break;
@@ -169,7 +171,9 @@ class SocketioServer{
                         fn({res: "error", info:"No existe la sala"});
                         break;
                     default:
+                        console.log(res);
                         res = res.substring(1);
+                        console.log(res);
                         socket.to(idSala).emit('jugadorSale', usuario);
                         if(res !== '0'){
                             socket.to(idSala).emit('turno', res);
@@ -190,8 +194,8 @@ class SocketioServer{
                 if( res.code === 0){
                     socket.leave(idSala);
                     let lider = res.nuevoLider;
-                    if(lider === ''){
-                        socket.to(idSala).emit('cambioLider', {usuario, lider});
+                    if(lider !== ''){
+                        socket.to(idSala).emit('cambioLider', {antiguo: usuario, nuevo: lider});
                     } else {
                         socket.to(idSala).emit('abandonoSala', usuario);
                     }
