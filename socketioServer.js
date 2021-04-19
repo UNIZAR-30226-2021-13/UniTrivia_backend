@@ -7,14 +7,14 @@ const logger = require('./logger');
 class SocketioServer{
     constructor(expressServer, port) {
         this.server = http.createServer(expressServer);
-        this.io = new socketio.Server(this.server);
+        this.io = new socketio.Server(this.server).of('/api/partida');
         this.port = port
 
         this.configurar();
     }
 
     configurar(){
-        this.io.of('/api/partida').use((socket, next) =>{
+        this.io.use((socket, next) =>{
             try {
                 const token = socket.request.headers['jwt'];
                 const obj = jwt.validarToken(token);
@@ -32,7 +32,7 @@ class SocketioServer{
         });
 
         //TODO: ojo con los async
-        this.io.of('/api/partida').on('connection',  async (socket) => {
+        this.io.on('connection',  async (socket) => {
 
             const operacion = socket.request.headers['operacion'];
             let idSala = socket.request.headers['sala'];
