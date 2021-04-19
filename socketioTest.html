@@ -21,10 +21,11 @@
     <button onclick="comenzarPartida()" >Comenzar partida</button>
     <button onclick="terminar()">Cerrar conexion </button>
   </div>
-  <!--
+
     <script src="http://localhost:3000/socket.io/socket.io.js"> </script>
-      -->
-      <script src="http://unitests.herokuapp.com/socket.io/socket.io.js"> </script>
+  <!--
+  <script src="http://unitests.herokuapp.com/socket.io/socket.io.js"> </script>
+  -->
     <script>
       let token;
       let conn = undefined;
@@ -32,10 +33,10 @@
 
       let xhr = new XMLHttpRequest(),
               method = 'GET',
-              //partida = 'http://localhost:3000/api/partida',
-              partida = 'http://unitests.herokuapp.com/api/partida',
-              url = 'http://unitests.herokuapp.com/api/login';
-              //url = 'http://localhost:3000/api/login';
+              partida = 'http://localhost:3000/api/partida',
+              //partida = 'http://unitests.herokuapp.com/api/partida',
+              //url = 'http://unitests.herokuapp.com/api/login';
+              url = 'http://localhost:3000/api/login';
 
       function iniciarSesion() {
         let usuario = document.getElementById('username').value,
