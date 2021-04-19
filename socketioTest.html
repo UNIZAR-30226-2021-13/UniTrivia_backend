@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/html">
+  <head>
+    <meta charset="UTF-8">
+    <title>Test socketio</title>
+
+  </head>
+
+  <body>
+  <div>
+    <label for="username">Usuario</label><input type="text" id="username"/>
+    <label for="password">Contraseña</label><input type="text" id="password"/>
+    <button onclick="iniciarSesion()" >Iniciar Sesion</button>
+  </div>
+  <div>
+    <label for="idSala">ID Sala</label><input type="text" id="idSala"/>
+    <button onclick="crearSala()" >Crear sala</button>
+    <button onclick="unirseSala()" >Unirse sala</button>
+    <button onclick="buscarSala()" >Buscar sala</button>
+    <button onclick="abandonarSala()" >Abandonar sala</button>
+    <button onclick="comenzarPartida()" >Comenzar partida</button>
+    <button onclick="terminar()">Cerrar conexion </button>
+  </div>
+  <!--
+    <script src="http://localhost:3000/socket.io/socket.io.js"> </script>
+      -->
+      <script src="http://unitrivia.herokuapp.com/socket.io/socket.io.js"> </script>
+    <script>
+      let token;
+      let conn = undefined;
+      let sala = undefined;
+
+      let xhr = new XMLHttpRequest(),
+              method = 'GET',
+              //partida = 'http://localhost:3000/api/partida',
+              partida = 'http://unitrivia.herokuapp.com/api/partida',
+              url = 'http://unitrivia.herokuapp.com/api/login';
+              //url = 'http://localhost:3000/api/login';
+
+      function iniciarSesion() {
+        let usuario = document.getElementById('username').value,
+                pass = document.getElementById('password').value;
+        xhr.open(method, url, false); // sincrono
+        xhr.setRequestHeader("username", usuario);
+        xhr.setRequestHeader("password", pass);
+        xhr.send();
+        token = xhr.responseText;
+      }
+
+      function config(conn) {
+        conn.on("connect", () => {
+          console.assert(conn.conected != true, 'No conectado')
+          conn.emit("obtenerIdSala", (id) => {
+            console.assert(id !== '', 'Error obtener idSala');
+            sala = id;
+          });
+
+        })
+
+        conn.on('cambioLider', ({antiguo, nuevo}) => {
+          console.log("Antiguo lider: " + antiguo + " Nuevo: " + nuevo);
+        })
+
+        conn.on('abandonoSala', (user) => {
+          console.log("Abandona sala: " + user);
+        })
+
+        conn.on('nuevoJugador', (user) => {
+          console.log("Entra en la sala: " + user);
+        })
+
+        conn.on('cargarJugadores', (users) => {
+          console.log(users);
+        })
+
+        conn.on('turno', (info) => {
+          console.log("Turno de: " + info);
+        })
+
+        conn.on('comienzoPartida', () => {
+          console.log("Comienza la partida");
+        })
+
+        conn.on('chat', ({user, msg}) => {
+          console.log("Mensaje: " + msg + " de " + user);
+        })
+
+        conn.on('disconnect', (reason)=>{
+          console.log('Desconectado: '+ reason);
+        })
+      }
+
+      function crearSala(){
+        if(conn !== undefined){return;}
+        conn = io(partida,{
+          extraHeaders:{
+            jwt: token,
+            operacion: "crearSala",
+            priv: "false"
+          }
+        });
+        config(conn);
+      }
+
+      function unirseSala(){
+        if(conn !== undefined){return;}
+        let identificador = document.getElementById('idSala').value;
+        conn = io(partida,{
+          extraHeaders:{
+            jwt: token,
+            operacion: "unirseSala",
+            sala: identificador
+          }
+        });
+        config(conn);
+      }
+
+      function buscarSala(){
+        if(conn !== undefined){return;}
+        conn = io(partida,{
+          extraHeaders:{
+            jwt: token,
+            operacion: "buscarPartida"
+          }
+        });
+        config(conn);
+      }
+
+      function abandonarSala(){
+        conn.emit("abandonarSala", (code)=>{
+          console.log("Al abandonar sala: " + code.toString());
+        });
+
+      }
+
+      function terminar(){
+        conn.close();
+        conn = undefined;
+      }
+
+      function comenzarPartida(){
+        conn.emit("comenzarPartida", (res)=>{
+          console.log("Al comenzar partida: " + res.res + " " + res.info);
+        });
+      }
+  </script>
+  </body>
+</html>
