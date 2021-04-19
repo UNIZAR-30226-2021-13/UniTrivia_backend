@@ -370,7 +370,7 @@ async function abandonarSala(id_sala, usuario){
                         value.jugadores.splice(index, 1);
                         value.nJugadores--;
                         deleteUser(usuario);
-                        if(value.jugadores[index] === value.lider){
+                        if(usuario === value.lider){
                             value.lider = value.jugadores[0];
                             console.log('abandonarSala.priv.nuevoLider = ' + value.lider);
                             return {code: 0, nuevoLider: value.jugadores[0]};
@@ -404,7 +404,7 @@ async function abandonarSala(id_sala, usuario){
                         value.jugadores.splice(index, 1);
                         value.nJugadores--;
                         deleteUser(usuario)
-                        if(value.jugadores[index] === value.lider) {
+                        if(usuario === value.lider) {
                             console.log('abandonarSala.pub.nuevoLider = ' + value.lider);
                             value.lider = value.jugadores[0];
                             return {code: 0, nuevoLider: value.jugadores[0]};
