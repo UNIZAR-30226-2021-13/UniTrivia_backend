@@ -104,12 +104,12 @@
 
       function unirseSala(){
         if(conn !== undefined){return;}
-        const idSala = document.getElementById('idSala').value;
+        let identificador = document.getElementById('idSala').value;
         conn = io(partida,{
           extraHeaders:{
             jwt: token,
             operacion: "unirseSala",
-            idSala: idSala
+            idSala: identificador
           }
         });
         config(conn);
