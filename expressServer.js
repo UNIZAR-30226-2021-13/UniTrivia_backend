@@ -11,6 +11,7 @@ const bodyParser = require('body-parser');
 const { OpenApiValidator } = require('express-openapi-validator');
 const logger = require('./logger');
 const config = require('./config');
+const SocketioServer = require("./socketioServer");
 
 class ExpressServer {
   constructor(port, openApiYaml) {
@@ -65,20 +66,20 @@ class ExpressServer {
       operationHandlers: path.join(__dirname),
       fileUploader: { dest: config.FILE_UPLOAD_PATH },
     }).install(this.app)
-      .catch(e => console.log(e))
-      .then(() => {
-        // eslint-disable-next-line no-unused-vars
-        this.app.use((err, req, res, next) => {
-          // format errors
-          res.status(err.status || 500).json({
-            message: err.message || err,
-            errors: err.errors || '',
+        .catch(e => console.log(e))
+        .then(() => {
+          // eslint-disable-next-line no-unused-vars
+          this.app.use((err, req, res, next) => {
+            // format errors
+            res.status(err.status || 500).json({
+              message: err.message || err,
+              errors: err.errors || '',
+            });
           });
-        });
 
-        http.createServer(this.app).listen(this.port);
-        console.log(`Listening on port ${this.port}`);
-      });
+          const server = new SocketioServer(this.app, this.port);
+          server.launch();
+        });
   }
 
 
