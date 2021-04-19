@@ -191,8 +191,8 @@ class SocketioServer{
                 if( res.code === 0){
                     socket.leave(idSala);
                     let lider = res.nuevoLider;
-                    if(lider === ''){
-                        socket.to(idSala).emit('cambioLider', {usuario, lider});
+                    if(lider !== ''){
+                        socket.to(idSala).emit('cambioLider', {antiguo: usuario, nuevo: lider});
                     } else {
                         socket.to(idSala).emit('abandonoSala', usuario);
                     }
