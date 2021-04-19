@@ -132,6 +132,7 @@ class SocketioServer{
                         break;
                     case 0: //OK
                         fn({res: "ok", info: ""});
+                        console.log(res);
                         socket.to(idSala).emit('comienzoPartida',"");
                         this.io.in(idSala).emit('turno',ok['info']);
                         break;

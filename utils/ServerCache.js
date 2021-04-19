@@ -514,7 +514,7 @@ async function comenzarPartida(id_sala){
                 sala.jugadores.forEach(function(jugador, index, array){
                     jugadores.push( new NodoJugador(jugador, 0, [], config.MAX_QUESITOS));
                 })
-                const partida = new NodoJuego(sala.jugadores[Math.random() * sala.nJugadores], jugadores, sala.nJugadores);
+                const partida = new NodoJuego(sala.jugadores[~~(Math.random() * sala.nJugadores)], jugadores, sala.nJugadores);
                 salasJuego.set(id_sala, partida);
                 sala.mutex.cancel();
                 if(salasPub.has(id_sala)){
