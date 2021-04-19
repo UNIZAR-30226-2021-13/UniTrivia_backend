@@ -70,6 +70,7 @@ class SocketioServer{
                     } else {
                         socket.disconnect(true);
                     }
+                    console.log(res);
                     if (res !== undefined && res.code === 0) {
                         socket.join(res.sala);
                         idSala = res.sala;
