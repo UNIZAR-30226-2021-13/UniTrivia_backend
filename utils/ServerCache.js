@@ -359,88 +359,74 @@ async function abandonarSala(id_sala, usuario){
         if(salasPriv.has(id_sala)){
             value = salasPriv.get(id_sala);
             if(value === undefined){
+                console.log('abandonarSala.priv.NoExisteSala');
                 return {code: 1, nuevoLider: ''};
             } else {
-                if(value.lider === usuario){
-                    let res = await borrarSala(id_sala);
-                    return {code: res, nuevoLider: ''};
-                } else {
-                    return await value.mutex.runExclusive(async () => {
+                return await value.mutex.runExclusive(async () => {
 
-                        let index = -1;
-                        for (let i = 0; i < value.jugadores.length && index < 0; i++) {
-                            if (value.jugadores[i] === usuario) {
-                                index = i;
-                            }
-                        }
-                        if (index >= 0 && value.nJugadores > 1 && value.jugadores[index] === usuario) {
-                            value.jugadores.splice(index, 1);
-                            value.nJugadores--;
+                    const index = value.jugadores.indexOf(usuario);
+                    console.log('abandonarSala.priv.index = ' + index);
+                    if (index >= 0 && value.nJugadores > 1 ) {
+                        value.jugadores.splice(index, 1);
+                        value.nJugadores--;
+                        deleteUser(usuario);
+                        if(value.jugadores[index] === value.lider){
                             value.lider = value.jugadores[0];
-                            deleteUser(usuario);
+                            console.log('abandonarSala.priv.nuevoLider = ' + value.lider);
                             return {code: 0, nuevoLider: value.jugadores[0]};
-
-                        } else if(index >= 0 && value.nJugadores > 1){
-                            value.jugadores.splice(index, 1);
-                            value.nJugadores--;
-                            deleteUser(usuario)
+                        }else{
+                            console.log('abandonarSala.priv.noNuevoLider');
                             return {code: 0, nuevoLider: ''};
-
-                        } else if(index >= 0 && value.nJugadores <= 1) {
-                            deleteUser(usuario)
-                            value.mutex.cancel();
-                            salasPriv.del(id_sala);
-                            return {code: 0, nuevoLider: ''};
-
-                        } else{
-                            return {code: 1, nuevoLider: ''};
                         }
-                    });
-                }
+                    } else if(index >= 0 && value.nJugadores <= 1) {
+                        console.log('abandonarSala.priv.DestruirSala');
+                        deleteUser(usuario)
+                        value.mutex.cancel();
+                        salasPriv.del(id_sala);
+                        return {code: 0, nuevoLider: ''};
+
+                    } else{
+                        console.log('abandonarSala.priv.NoEstaElUsuario');
+                        return {code: 1, nuevoLider: ''};
+                    }
+                });
             }
         } else if (salasPub.has(id_sala)){
             value = salasPub.get(id_sala);
             if(value === undefined){
+                console.log('abandonarSala.pub.NoExisteSala');
                 return {code: 1, nuevoLider: ''};
             } else {
-                //console.log(value.jugadores)
-                if(value.lider === usuario){
-                    let res = await borrarSala(id_sala);
-                    return {code: res, nuevoLider: ''};
-                } else {
-                    return await value.mutex.runExclusive(async () => {
-                        let index = -1;
-                        for (let i = 0; i < value.jugadores.length && index < 0; i++) {
-                            if (value.jugadores[i] === usuario) {
-                                index = i;
-                            }
-                        }
-                        if (index >= 0 && value.nJugadores > 1 && value.jugadores[index] === usuario) {
-                            value.jugadores.splice(index, 1);
-                            value.nJugadores--;
+                return await value.mutex.runExclusive(async () => {
+                    const index = value.jugadores.indexOf(usuario);
+                    console.log('abandonarSala.pub.index = ' + index);
+                    if (index >= 0 && value.nJugadores > 1 ) {
+                        value.jugadores.splice(index, 1);
+                        value.nJugadores--;
+                        deleteUser(usuario)
+                        if(value.jugadores[index] === value.lider) {
+                            console.log('abandonarSala.pub.nuevoLider = ' + value.lider);
                             value.lider = value.jugadores[0];
-                            deleteUser(usuario)
                             return {code: 0, nuevoLider: value.jugadores[0]};
-
-                        } else if(index >= 0 && value.nJugadores > 1){
-                            value.jugadores.splice(index, 1);
-                            value.nJugadores--;
-                            deleteUser(usuario)
+                        }else{
+                            console.log('abandonarSala.pub.noNuevoLider');
                             return {code: 0, nuevoLider: ''};
-
-                        } else if(index >= 0 && value.nJugadores <= 1) {
-                            deleteUser(usuario)
-                            value.mutex.cancel();
-                            salasPub.del(id_sala);
-                            return {code: 0, nuevoLider: ''};
-
-                        } else{
-                            return {code: 1, nuevoLider: ''};
                         }
-                    });
-                }
+                    } else if(index >= 0 && value.nJugadores <= 1) {
+                        deleteUser(usuario)
+                        value.mutex.cancel();
+                        salasPub.del(id_sala);
+                        console.log('abandonarSala.pub.DestruirSala');
+                        return {code: 0, nuevoLider: ''};
+
+                    } else{
+                        console.log('abandonarSala.pub.NoEstaElUsuario');
+                        return {code: 1, nuevoLider: ''};
+                    }
+                });
             }
         } else {
+            console.log('abandonarSala.NoExisteSala');
             return {code: 1, nuevoLider: ''};
         }
     } catch (e) {
