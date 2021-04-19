@@ -405,8 +405,8 @@ async function abandonarSala(id_sala, usuario){
                         value.nJugadores--;
                         deleteUser(usuario)
                         if(usuario === value.lider) {
-                            console.log('abandonarSala.pub.nuevoLider = ' + value.lider);
                             value.lider = value.jugadores[0];
+                            console.log('abandonarSala.pub.nuevoLider = ' + value.lider);
                             return {code: 0, nuevoLider: value.jugadores[0]};
                         }else{
                             console.log('abandonarSala.pub.noNuevoLider');

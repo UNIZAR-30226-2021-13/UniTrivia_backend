@@ -105,7 +105,7 @@ class SocketioServer{
                     if(lider === ''){
                         socket.to(idSala).emit('abandonoSala', usuario);
                     } else {
-                        socket.to(idSala).emit('cambioLider', {usuario, lider});
+                        socket.to(idSala).emit('cambioLider', {antiguo: usuario, nuevo: lider});
                     }
                     socket.leave(idSala);
                     fn(0);
