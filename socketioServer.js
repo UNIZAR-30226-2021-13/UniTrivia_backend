@@ -170,7 +170,9 @@ class SocketioServer{
                         fn({res: "error", info:"No existe la sala"});
                         break;
                     default:
+                        console.log(res);
                         res = res.substring(1);
+                        console.log(res);
                         socket.to(idSala).emit('jugadorSale', usuario);
                         if(res !== '0'){
                             socket.to(idSala).emit('turno', res);
