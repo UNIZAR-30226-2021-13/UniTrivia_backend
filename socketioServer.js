@@ -53,6 +53,7 @@ class SocketioServer{
 
             if(sala.sala !== ''){
                 //TODO Falta implementar que pueda volver el usuario
+                socket.disconnect(true);
             } else {
                 if (operacion === 'crearSala') {
                     console.log("Entra crear sala")
