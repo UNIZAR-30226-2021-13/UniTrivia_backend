@@ -40,6 +40,14 @@ class NodoJugador{
     set nRestantes(value) {
         this._nRestantes = value;
     }
+
+    get conectado(){
+        return this._conectado;
+    }
+
+    set conectado(value){
+        this._conectado = value;
+    }
     /**
      * Constructor
      *
@@ -53,6 +61,7 @@ class NodoJugador{
         this._casilla = casilla;
         this._quesitos = quesitos;
         this._nRestantes = nRestantes;
+        this._conectado = true;
     }
 }
 
@@ -90,7 +99,7 @@ class NodoJuego{
         this._turno = turno;
         this._jugadores = jugadores;
         this._nJugadores = nJugadores;
-        //this.mutex = new Mutex();
+        this.mutex = new Mutex();
     }
 }
 
@@ -535,6 +544,48 @@ async function comenzarPartida(id_sala){
     }
 }
 
+function nuevaJugada(id_partida, jugador, nuevaCasilla, nuevoQuesito, finTurno){
+    try{
+        let value = salasJuego.get(id_partida);
+        if(value !== undefined){
+            if(value.turno !== jugador){
+                let index = value.jugadores.findIndex(t => t.nombre===jugador);
+                if(index !== -1){
+                    return value.mutex.runExclusive(()=>{
+                        let res = 1;
+                        if(nuevaCasilla !== "") {
+                            value.jugadores[index].casilla = nuevaCasilla;
+                        }
+                        if(nuevoQuesito !== "" && !nuevoQuesito in value.jugadores[index].quesitos) {
+                            value.jugadores[index].quesitos.push(nuevoQuesito);
+                            value.jugadores[index].nRestantes--;
+                        }
+                        if(finTurno) {
+                            let i = 1
+                            while (!value.jugadores[(index + i) % value.nJugadores].conectado) {
+                                i++;
+                            }
+                            value.turno = value.jugadores[(index + i) % value.nJugadores].nombre;
+                        }else{
+                            res = 0;
+                        }
+                        return res;
+                    })
+                }else{
+                    return 2
+                }
+            }else{
+                return 3;
+            }
+        }else{
+            return 4;
+        }
+    }catch (e) {
+        logger.error('Error al actualizar jugada', e);
+        return 5;
+    }
+}
+
 /**
  * Función para actualizar la casilla de un jugador en su turno
  * @param {string} id_partida
@@ -553,7 +604,7 @@ function actualizarCasilla(id_partida, jugador, casilla){
                         actualizado = true;
                     }
                 }
-                return actualizado ? 0 : 1;
+                return actualizado ? 0 : 3;
             } else {
                 logger.error('Error al actualizar casilla, no es el turno del jugador');
                 return 2;
@@ -617,14 +668,14 @@ function cambiarTurno(id_partida, jugador){
         let value = salasJuego.get(id_partida);
         if(value !== undefined){
             if(value.turno === jugador){
-                let actualizado = false;
-                for(let i = 0; i < value.jugadores.lenght && !actualizado; i++) {
-                    if(value.jugadores[i].nombre === jugador) {
-                        value.turno = value.jugadores[(i+1) % value.jugadores.lenght].nombre;
-                        actualizado = true;
+                const data = value.jugadores.findIndex(t => t.nombre===jugador);
+                if(data !== -1){
+                    let i = 1
+                    while(!value.jugadores[data+i%value.nJugadores].conectado){
+                        i++;
                     }
-                }
-                if(actualizado === true){
+                    value.turno = value.jugadores[data+i%value.nJugadores].nombre;
+
                     return 0;
                 }else{
                     logger.error("Error al cambiar turno, jugador no encontrado");
@@ -644,6 +695,33 @@ function cambiarTurno(id_partida, jugador){
     }
 }
 
+function obtenerQuesitosRestantes(id_partida, jugador){
+    try{
+        const value = salasJuego.get(id_partida);
+        if(value !== undefined){
+            const data = value.jugadores.findIndex(t => t.nombre===jugador);
+            return value.jugadores[data].nRestantes;
+        }else{
+            return undefined;
+        }
+    }catch (e) {
+        return undefined;
+    }
+}
+
+function obtenerTurno(id_partida){
+    try{
+        const value = salasJuego.get(id_partida);
+        if(value !== undefined){
+            return value.turno;
+        }else{
+            return undefined;
+        }
+    }catch (e) {
+        return undefined;
+    }
+}
+
 /**
  * Función para que un usuario abandone la partida
  * @param id_partida Identificador de la partida a borrar
@@ -655,24 +733,30 @@ function abandonarPartida(id_partida, jugador){ //TODO Falta implementar que pue
         if(value !== undefined){
             const data = value.jugadores.findIndex(t => t.nombre===jugador);
             if(data !== -1){ // Está en la lista
-                let ret = "0";
-                if(value.turno === jugador) { //Era su turno
-                    value.turno = value.jugadores[data+1%value.nJugadores].nombre;
-                    ret = value.turno;
-                }
-                value.jugadores.splice(data, 1); // Elimina al usuario
-                return " "+ret;
+                return value.mutex.runExclusive(()=>{
+                    let ret = 1, i = 1;
+                    if(value.turno === jugador) { //Era su turno
+                        while(!value.jugadores[data+i%value.nJugadores].conectado){
+                            i++;
+                        }
+                        value.turno = value.jugadores[data+i%value.nJugadores].nombre;
+                        ret = 0;
+                    }
+                    //value.jugadores.splice(data, 1); // Elimina al usuario
+                    value.jugadores[data].conectado = false;
+                    return ret; //Si cambia de turno valdrá 0, si no 1.
+                });
             }else{//No está en la lista
                 logger.error('Error al abandonar partida, no está el jugador');
-                return "-2";
+                return 2;
             }
         } else {
             logger.error('Error al abandonar partida, no existe la sala');
-            return "-3";
+            return 3;
         }
     } catch (e) {
         logger.error('Error al abandonar partida', e);
-        return "-1";
+        return 4;
     }
 }
 
@@ -706,9 +790,11 @@ module.exports =
         abandonarSala,
         borrarSala,
         comenzarPartida,
+        nuevaJugada,
         actualizarCasilla,
         anyadirQuesito,
         cambiarTurno,
+        obtenerTurno,
         abandonarPartida,
         borrarPartida,
         stop

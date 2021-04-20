@@ -146,40 +146,54 @@ class SocketioServer{
                 console.log(dado)
             });
 
-            socket.on('actualizarJugada', (input) => {
+            socket.on('actualizarJugada', ({casilla, quesito,finTurno}, fn) => {
                 //TODO actualizar cache (casilla + quesitos + cambiar turno)
                 //TODO broadcast a todos para informar
                 //TODO en caso de victoria broadcast de fin de partida para posterior mensaje a la API rest para actualizar
                 // monedas e historial de partidas y volver al menú principal y borrar partida de la cache
 
-                console.log(input)
+                let ok = cache.nuevaJugada(idSala, usuario, casilla, quesito, finTurno);
+                let resultado = {res: "error", info: "Error desconocido"}
+                switch (ok){
+                    case 0:
+                        socket.to(idSala).emit('turno', cache.obtenerTurno(idSala));
+                    case 1:
+                        break;
+                    case 2:
+                        resultado = {res: "error", info: "Jugador no pertenece a la sala"};
+                        break;
+                    case 3:
+                        resultado = {res: "error", info: "No es el turno del jugador"};
+                        break;
+                    case 4:
+                        resultado = {res: "error", info: "No existe la sala"};
+                        break;
+                    case 5:
+                        resultado = {res: "error", info: "Error desconocido"};
+                        break;
+                }
+                fn(resultado);
+
             });
 
             socket.on('abandonarPartida', async (fn) => {
-                //TODO actualizar cache
-                //TODO broadcast al resto de usuarios para indicar que un usuario ha abandonado la partida a frontend
-                // Si nuevo lider tambien informarlo en el mensaje
                 let res = await cache.abandonarPartida(idSala, usuario);
                 switch (res){
-                    case '-1':
-                        fn({res: "error", info:"Desconocido"});
-                        break;
-                    case '-2':
-                        fn({res: "error", info:"No se pertence a la sala"});
-                        break;
-                    case '-3':
-                        fn({res: "error", info:"No existe la sala"});
-                        break;
-                    default:
-                        console.log(res);
-                        res = res.substring(1);
-                        console.log(res);
+                    case 0:
+                        socket.to(idSala).emit('turno', cache.obtenerTurno(idSala));
+                    case 1:
                         socket.to(idSala).emit('jugadorSale', usuario);
-                        if(res !== '0'){
-                            socket.to(idSala).emit('turno', res);
-                        }
                         socket.leave(idSala);
                         fn({res: "ok", info:""});
+                        break;
+                    case 2:
+                        fn({res: "error", info:"No se pertence a la sala"});
+                        break;
+                    case 3:
+                        fn({res: "error", info:"No existe la sala"});
+                        break;
+                    case 4:
+                        fn({res: "error", info:"Desconocido"});
                         break;
                 }
             });
