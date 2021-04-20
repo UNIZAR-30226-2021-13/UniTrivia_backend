@@ -2,11 +2,13 @@ const logger = require('../logger');
 const NodeCache = require('node-cache');
 const Mutex = require('async-mutex').Mutex;
 const config = require('../config')
+const Tablero = require('./Tablero')
 
 let salasPub = null; //NodeCache con las salas publicas pendientes de empezar
 let salasPriv = null; //NodeCache con las salas privadas pendientes de empezar
 let salasJuego = null; //NodeCache con las salas en las que actualmente se está jugando
 let usuariosEnSala = null; //NodeCache con los usuarios y las salas en las que están
+let tablero = null;
 
 class NodoJugador{
     get nombre() {
@@ -119,16 +121,6 @@ class NodoSala{
     }
 }
 
-//Origen: https://stackoverflow.com/a/1349426
-function randString(length) {
-    let result = '';
-    let characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-';
-    let charactersLength = characters.length;
-    for (let i = 0; i < length; i++) {
-        result += characters.charAt(Math.floor(Math.random() * charactersLength));
-    }
-    return result;
-}
 
 /**
  * Función para iniciar la memoria caché del servidor
@@ -140,6 +132,7 @@ function crear(){
         salasPriv = new NodeCache({maxKeys: 20, useClones: false});
         salasJuego = new NodeCache({stdTTL: 72000, useClones: false});
         usuariosEnSala = new NodeCache({useClones: false});
+        tablero = new Tablero.Tablero();
 
     } catch(err){
         logger.error("Error al crear la memoria cache", err);
@@ -778,6 +771,37 @@ function borrarPartida(id_partida){
     }
 }
 
+/**
+ * Función que dada la id de la partida, el nombre del jugador, la casilla actual y el resultado de
+ * lanzar el dado te devuelve la siguiente casilla del jugador junto con el tipo de casilla y la
+ * pregunta correspondiente al tipo de casilla si  es que tiene.
+ *
+ * @param id_partida Identificador de la partida
+ * @param jugador Jugador que solicita el paso de turno o al cual se le pasa el tiempo (hace referencia al índice del vector)
+ * @param actual Id de la casilla actual
+ * @param dado Resultado obtenido tras lanzar el dado
+ * @returns {number}
+ */
+function getPosiblesJugadas(id_partida, jugador, actual, dado){
+    try {
+        let value = salasJuego.get(id_partida);
+        if (value !== undefined) {
+            const data = value.jugadores.findIndex(t => t.nombre === jugador);
+
+            if (data !== -1) { // Está en la lista
+                let movs = tablero.getPosiblesMovimientos(actual, dado, jugador);
+                if (movs === null) return 3;
+                //TODO llamar a la base de datos para recoger preguntas
+            } else{
+                return 2;
+            }
+        }
+    } catch (e) {
+        logger.error('Error al borrarPartida',e);
+        return 1;
+    }
+}
+
 
 module.exports =
     {
@@ -797,5 +821,6 @@ module.exports =
         obtenerTurno,
         abandonarPartida,
         borrarPartida,
+        getPosiblesJugadas,
         stop
     };
