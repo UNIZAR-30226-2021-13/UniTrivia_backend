@@ -162,6 +162,15 @@ class SocketioServer{
                     case 0:
                         socket.to(idSala).emit('turno', cache.obtenerTurno(idSala));
                     case 1:
+                        if(cache.obtenerQuesitosRestantes(idSala, usuario) === 0){
+                            this.io.in(idSala).emit("FinDelJuego",usuario);
+                        }
+                        socket.to(idSala).emit("jugada", {
+                            user: usuario,
+                            casilla: casilla,
+                            ques: quesito
+                        });
+                        resultado = {res: "ok", info: ""};
                         break;
                     case 2:
                         resultado = {res: "error", info: "Jugador no pertenece a la sala"};
