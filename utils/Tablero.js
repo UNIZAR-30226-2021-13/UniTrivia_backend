@@ -5,7 +5,6 @@ class Tablero{
     constructor() {
         this.circuloExterior = this.getCirculoExterior();
         this.caminosInteriores = this.getCaminosInteriores();
-        this.siguienteCasilla = this.getTransicion();
     }
 
     getCirculoExterior(){

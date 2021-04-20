@@ -7,7 +7,11 @@ const logger = require('./logger');
 class SocketioServer{
     constructor(expressServer, port) {
         this.server = http.createServer(expressServer);
-        this.io = new socketio.Server(this.server).of('/api/partida');
+        this.io = new socketio.Server(this.server,{
+            cors:{
+                origin: "http://localhost:3001"
+            }
+        }).of('/api/partida');
         this.port = port
 
         this.configurar();
