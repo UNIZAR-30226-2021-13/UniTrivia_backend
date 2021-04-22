@@ -147,11 +147,33 @@ class SocketioServer{
                 }
             });
 
-            socket.on('posiblesJugadas', (dado) => {
-                //TODO explorar los posibles movimientos del usuario
-                //     que tiene el turno moviendo dado casillas y devolver
-                //      la lista de casillas que se pueden visitar.
-                console.log(dado)
+            socket.on('posiblesJugadas', (dado, fn) => {
+                const posicion = cache.obtenerPosicion(idSala, usuario);
+                const turno = cache.obtenerTurno(idSala);
+                if(turno === usuario) {
+                    if(posicion){
+                        if(dado < 0 || dado > 6){
+                            fn({res: "err", info: "Dado incorrecto"});
+                            return ;
+                        }
+                        const ok = cache.getPosiblesJugadas(idSala, usuario, posicion, dado);
+                        switch(ok['code']){
+                            case 0:
+                                fn({res: "ok", info: ok['res']})
+                                break;
+                            case 1:
+                                fn({res: "err", info: "Error desconocido."})
+                                break;
+                            case 2:
+                                fn({res: "err", info: "No se pudo obtener tu posición."})
+                                break;
+                        }
+                    }else{
+                        fn({res: "err", info: "No se pudo obtener tu posición."})
+                    }
+                }else{
+                    fn({res: "err", info: "No es el turno."})
+                }
             });
 
             socket.on('actualizarJugada', ({casilla, quesito,finTurno}, fn) => {

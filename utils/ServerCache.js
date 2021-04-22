@@ -610,6 +610,28 @@ function obtenerQuesitosRestantes(id_partida, jugador){
 }
 
 /**
+ * Dado el id de un usuario y la partida,
+ * te devuelve la casilla en la que está.
+ *
+ * @param id_partida
+ * @param usuario
+ * @returns {undefined|integer}
+ */
+function obtenerPosicion(id_partida, usuario){
+    try{
+        const value = salasJuego.get(id_partida);
+        if(value !== undefined){
+            const data = value.jugadores.findIndex(t => t.nombre===jugador);
+            return value.jugadores[data].casilla;
+        }else{
+            return undefined;
+        }
+    }catch (e) {
+        return undefined;
+    }
+}
+
+/**
  *
  * @param id_partida
  * @returns {undefined|string}
@@ -731,6 +753,7 @@ module.exports =
         comenzarPartida,
         nuevaJugada,
         obtenerQuesitosRestantes,
+        obtenerPosicion,
         obtenerTurno,
         abandonarPartida,
         borrarPartida,
