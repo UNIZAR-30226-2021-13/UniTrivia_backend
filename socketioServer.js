@@ -147,7 +147,7 @@ class SocketioServer{
                 }
             });
 
-            socket.on('posiblesJugadas', (dado, fn) => {
+            socket.on('posiblesJugadas', async (dado, fn) => {
                 const posicion = cache.obtenerPosicion(idSala, usuario);
                 const turno = cache.obtenerTurno(idSala);
                 if(turno === usuario) {
@@ -156,7 +156,7 @@ class SocketioServer{
                             fn({res: "err", info: "Dado incorrecto"});
                             return ;
                         }
-                        const ok = cache.getPosiblesJugadas(idSala, usuario, posicion, dado);
+                        const ok = await cache.getPosiblesJugadas(idSala, usuario, posicion, dado);
                         switch(ok['code']){
                             case 0:
                                 fn({res: "ok", info: ok['res']})
@@ -165,7 +165,16 @@ class SocketioServer{
                                 fn({res: "err", info: "Error desconocido."})
                                 break;
                             case 2:
+                                fn({res: "err", info: "Jugador inválido."})
+                                break;
+                            case 3:
                                 fn({res: "err", info: "No se pudo obtener tu posición."})
+                                break;
+                            case 4:
+                                fn({res: "err", info: "Error al recuperar las preguntas."})
+                                break;
+                            default:
+                                fn({res: "err", info: "Error desconocido."})
                                 break;
                         }
                     }else{

@@ -15,10 +15,15 @@ const launchServer = async () => {
   }
   try {
     cache.crear();
-    const res = await cacheTest.testSalas();
+    let res = await cacheTest.testSalas();
     if (res !== 0){
       console.log('Error test cache salas')
     }
+    res = await cacheTest.testTablero();
+    if (res !== 0){
+      console.log('Error test cache tablero')
+    }
+
     this.expressServer = new ExpressServer(config.URL_PORT, config.OPENAPI_YAML);
     this.expressServer.launch();
     logger.info('Express server running');

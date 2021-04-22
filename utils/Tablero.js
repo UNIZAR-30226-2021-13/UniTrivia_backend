@@ -88,7 +88,7 @@ class Tablero{
                 if (dado > 3) {
 
                     let sig = this.caminosInteriores[jugador][2].n - 61;
-                    return this.getPosiblesMovimientos(sig, dado - 3, jugador);
+                    return this.getPosiblesMovimientos(sig, dado - 4, jugador);
 
                 } else {
                     let res = this.caminosInteriores[jugador][dado - 1];
@@ -97,10 +97,11 @@ class Tablero{
 
             } else if (actual >= 61 && actual < 114) {
                 let dadoPrev = this.caminosInteriores[jugador].findIndex(t => t.n === actual) + 1;
+                if (dadoPrev <= 0) return null;
 
                 if (dado + dadoPrev >  3 ) {
                     let sig = this.caminosInteriores[jugador][2].n - 61;
-                    return this.getPosiblesMovimientos(sig, dado + dadoPrev - 3 , jugador);
+                    return this.getPosiblesMovimientos(sig, dado + dadoPrev - 4 , jugador);
 
                 } else {
                     let res = this.caminosInteriores[jugador][dadoPrev + dado - 1];
@@ -110,13 +111,17 @@ class Tablero{
             } else if (actual >= 0 && actual < 61){
 
                 let casilla = this.circuloExterior.findIndex(t => t.n === actual);
+                if(casilla < 0) return null;
+
                 if (dado === 0){
                     let res = this.circuloExterior[casilla];
                     return [{num: res.n, categoria: res.cas.color, tipo: res.cas.tipo}];
                 }
 
-                let res = this.circuloExterior[(casilla+dado)%this.circuloExterior.length];
-                let res2 = this.circuloExterior[(casilla-dado)%this.circuloExterior.length];
+                let length = this.circuloExterior.length;
+                let res = this.circuloExterior[(length+casilla+dado)%length];
+                let res2 = this.circuloExterior[(length+casilla-dado)%length];
+
                 return [{num: res.n, categoria: res.cas.color, tipo: res.cas.tipo},
                         {num: res2.n, categoria: res2.cas.color, tipo: res2.cas.tipo}];
 

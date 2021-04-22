@@ -1,5 +1,6 @@
 const logger = require('../logger');
 const cache = require('../utils/ServerCache');
+const Tablero = require('../utils/Tablero');
 
 
 /**
@@ -82,10 +83,83 @@ async function testSalas(){
         return 0;
 
     } catch (e){
-        logger.error('Error en el test: desconocido', e)
+        logger.error('Error en el test salas: desconocido', e)
         return 1;
     }
 
 }
 
-module.exports = { testSalas }
+async function testTablero(){
+    try {
+        const act1 = 777;
+        const act2 = 63;
+        const act3 = 53;
+
+        let tablero = new Tablero();
+
+        let res = tablero.getPosiblesMovimientos(act1, 6, 0);
+        if (res == null || res.length !== 2|| res[0].num !== 2 || res[1].num !== 52) {
+            logger.error('Error test tablero: 1')
+            return 1;
+        }
+
+        res = tablero.getPosiblesMovimientos(act1, 2, 0);
+        if (res == null || res.length !== 1 || res[0].num !== 62) {
+            logger.error('Error test tablero: 2')
+            return 1;
+        }
+
+        res = tablero.getPosiblesMovimientos(act2, 5, 0);
+        if (res == null || res.length !== 2|| res[0].num !== 2 || res[1].num !== 52) {
+            logger.error('Error test tablero: 3')
+            return 1;
+        }
+
+        res = tablero.getPosiblesMovimientos(act2, 1, 0);
+        if (res == null || res.length !== 1 || res[0].num !== 62) {
+            logger.error('Error test tablero: 4')
+            return 1;
+        }
+
+        res = tablero.getPosiblesMovimientos(act3, 3, 0);
+        if (res == null || res.length !== 2 || res[0].num !== 2 || res[1].num !== 50) {
+            logger.error('Error test tablero: 5')
+            return 1;
+        }
+
+        if (tablero.getPosiblesMovimientos(114, 1, 0) !== null){
+            logger.error('Error test tablero: 6')
+            return 1;
+        }
+
+        if (tablero.getPosiblesMovimientos(-1, 1, 0) !== null){
+            logger.error('Error test tablero: 7')
+            return 1;
+        }
+
+        if (tablero.getPosiblesMovimientos(63, 1, 1) !== null){
+            logger.error('Error test tablero: 8')
+            return 1;
+        }
+
+        const res1 = await cache.crearSala("usuario1", false);
+        await cache.unirseSala(res1.sala, "usuario2");
+        await cache.comenzarPartida(res1.sala);
+
+
+        res = await cache.getPosiblesJugadas(res1.sala, "usuario1", 777, 1);
+        if(res.code !== 0){
+            console.log(res.code)
+            logger.error('Error test tablero: 9')
+            return 1;
+        }
+
+        return 0;
+
+    } catch (e) {
+        logger.error('Error en el test tablero: desconocido', e)
+        return 1;
+    }
+}
+
+module.exports = { testSalas, testTablero }

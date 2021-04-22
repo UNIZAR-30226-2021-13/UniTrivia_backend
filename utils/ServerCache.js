@@ -143,7 +143,7 @@ function crear(){
         salasPriv = new NodeCache({maxKeys: 20, useClones: false});
         salasJuego = new NodeCache({stdTTL: 72000, useClones: false});
         usuariosEnSala = new NodeCache({useClones: false});
-        tablero = new Tablero.Tablero();
+        tablero = new Tablero();
 
     } catch(err){
         logger.error("Error al crear la memoria cache", err);
@@ -721,11 +721,21 @@ async function getPosiblesJugadas(id_partida, jugador, actual, dado){
             const data = value.jugadores.findIndex(t => t.nombre === jugador);
 
             if (data !== -1) { // Está en la lista
-                let movs = tablero.getPosiblesMovimientos(actual, dado, jugador);
+                let movs = tablero.getPosiblesMovimientos(actual, dado, data);
                 if (movs === null) return {code: 3, res: null};
+
                 let resultado = [];
-                movs.forEach(cas => resultado.push({casilla: cas,
-                                                    pregunta: Preguntas.recuperarPregunta(cas.categoria)}))
+                for(let i = 0; i < movs.length; i++) {
+                    let res = await Preguntas.recuperarPregunta(movs[i].categoria)
+                    if (res.code === 0) {
+                        resultado.push({
+                            casilla: movs[i],
+                            pregunta: res.preg
+                        });
+                    } else {
+                        return {code: 4, res: null}
+                    }
+                }
 
                 return {code: 0, res: resultado};
 
