@@ -28,6 +28,7 @@ class SocketioServer{
 
                 if (obj) {
                     socket.username = obj['user'];
+                    socket.invitado = obj['guest'];
                     console.log("Conectado: " + socket.username);
                     next();
                 } else {
@@ -38,7 +39,6 @@ class SocketioServer{
             }
         });
 
-        //TODO: ojo con los async
         this.io.on('connection',  async (socket) => {
 
             const operacion = socket.request.headers['operacion'];
@@ -55,8 +55,20 @@ class SocketioServer{
             console.log("sala = " + sala);
 
             if(sala.sala !== ''){
-                //TODO Falta implementar que pueda volver el usuario
-                socket.disconnect(true);
+                if(operacion !== 'reconexion') {
+                    socket.disconnect(true);
+                    return;
+                }
+
+                idSala = res.sala;
+                if(cache.reconexionJugador(idSala, usuario) !== 0){
+                    socket.disconnect(true);
+                    return
+                }
+                socket.join(idSala);
+                socket.to(idSala).emit('reconexionJugador', usuario); // no emite al propio socket
+                socket.emit('cargarJugadores', cache.obtenerJugadores(idSala));
+
             } else {
                 if (operacion === 'crearSala') {
                     console.log("Entra crear sala")
@@ -125,7 +137,10 @@ class SocketioServer{
             });
 
             socket.on('comenzarPartida', async (fn) => {
-                //TODO solo el lider puede comenzar partida
+                if(cache.liderDeSala(idSala) !== usuario){
+                    fn({res: "error", info: "Sólo el lider puede comenzar la partida."})
+                    return;
+                }
                 const ok = await cache.comenzarPartida(idSala);
                 switch(ok['code']){
                     case 1: //Error desconocido
@@ -185,13 +200,7 @@ class SocketioServer{
                 }
             });
 
-            socket.on('actualizarJugada', ({casilla, quesito,finTurno}, fn) => {
-                //TODO actualizar cache (casilla + quesitos + cambiar turno)
-                //TODO broadcast a todos para informar
-                //TODO en caso de victoria broadcast de fin de partida para posterior mensaje a la API rest para actualizar
-                // monedas e historial de partidas y volver al menú principal y borrar partida de la cache
-
-                let ok = cache.nuevaJugada(idSala, usuario, casilla, quesito, finTurno);
+            socket.on('actualizarJugada', ({casilla, quesito,finTurno}, fn) => {let ok = cache.nuevaJugada(idSala, usuario, casilla, quesito, finTurno);
                 let resultado = {res: "error", info: "Error desconocido"}
                 switch (ok){
                     case 0:

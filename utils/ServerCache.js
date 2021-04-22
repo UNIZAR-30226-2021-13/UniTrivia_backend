@@ -337,22 +337,27 @@ async function buscarPartida(usuario){
 function obtenerJugadores(id_sala){
     try{
         let value = undefined;
-        if(salasPriv.has(id_sala)){
+        if(salasPriv.has(id_sala)) {
             value = salasPriv.get(id_sala);
-            if(value === undefined){
-                return {code:1 , jugadores: []};
-            } else {
-                return {code:0 , jugadores: value.jugadores};
-            }
-        } else if (salasPub.has(id_sala)){
+        }else if(salasPub.has(id_sala)){
             value = salasPub.get(id_sala);
-            if(value === undefined){
-                return {code:1 , jugadores: []};
-            } else {
-                return {code:0 , jugadores: value.jugadores};
-            }
         } else {
             return {code:1 , jugadores: []};
+        }
+
+        if(value === undefined){
+            return {code:1 , jugadores: []};
+        } else {
+            let jugadores = [];
+            value.jugadores.forEach( (jugador, _) => {
+                jugadores.push({
+                    usuario: jugador.nombre,
+                    casilla: jugador.casilla,
+                    quesitos: jugador.quesitos
+                });
+            });
+
+            return {code:0 , jugadores: jugadores};
         }
     } catch (e){
         logger.error('Error al obtener jugadores de la sala', e);
@@ -508,6 +513,26 @@ async function borrarSala(id_sala){
 }
 
 /**
+ * De vuelve el lider de la sala en caso de que exista,
+ * si no devuelve undefined.
+ *
+ * @param id_sala Identificador de la sala
+ * @returns {string|undefined} Identificador del lider de la sala
+ */
+function liderDeSala(id_sala){
+    try{
+        const sala = salasPub.has(id_sala) ? salasPub.get(id_sala) : salasPriv.get(id_sala);
+        if(sala){
+            return sala.lider;
+        }else{
+            return undefined;
+        }
+    }catch (e){
+        return undefined;
+    }
+}
+
+/**
  * Función para comenzar la partida con los jugadores presentes en la sala.
  * Borra la sala de caché y crea la partida en la caché correspondiente.
  * @param id_sala
@@ -571,6 +596,8 @@ function nuevaJugada(id_partida, jugador, nuevaCasilla, nuevoQuesito, finTurno){
                             }
                             value.turno = value.jugadores[(index + i) % value.nJugadores].nombre;
                             res = 0;
+                        }else if(value.jugadores[index].nRestantes === 0){
+                            borrarPartida(id_partida);
                         }
                         return res;
                     })
@@ -671,6 +698,9 @@ function abandonarPartida(id_partida, jugador){ //TODO Falta implementar que pue
                     }
                     //value.jugadores.splice(data, 1); // Elimina al usuario
                     value.jugadores[data].conectado = false;
+                    if(value.jugadores.every(elem => !elem.conectado)){
+                        borrarPartida(id_partida);
+                    }
                     return ret; //Si cambia de turno valdrá 0, si no 1.
                 });
             }else{//No está en la lista
@@ -687,13 +717,38 @@ function abandonarPartida(id_partida, jugador){ //TODO Falta implementar que pue
     }
 }
 
+function reconexionJugador(id_partida, usuario){
+    try{
+        let value = salasJuego.get(id_partida);
+        if(value === undefined){
+            logger.error('Error al reconectarse, no existe la sala.');
+            return 1;
+        }
+        const index = value.jugadores.findIndex(t => t.nombre===usuario);
+        if(index === -1){
+            logger.error('Error al reconectarse, no está el usuario.');
+            return 2;
+        }
+
+        return value.mutex.runExclusive(()=>{
+            value.jugadores[index].conectado(true);
+            return 0;
+        })
+
+    }catch (e){
+        logger.error('Error al reconectarse un jugador. ', e);
+        return 3;
+    }
+}
+
 /**
  * Función para borrar una partida de la memoria caché
  * @param id_partida
  */
 function borrarPartida(id_partida){
     try{
-        salasJuego.del(id_partida);
+        const value = salasJuego.take(id_partida);
+        value.jugadores.forEach(j => usuariosEnSala.del(j.nombre));
     } catch (e) {
         logger.error('Error al borrarPartida',e);
     } finally {
@@ -760,12 +815,14 @@ module.exports =
         buscarPartida,
         abandonarSala,
         borrarSala,
+        liderDeSala,
         comenzarPartida,
         nuevaJugada,
         obtenerQuesitosRestantes,
         obtenerPosicion,
         obtenerTurno,
         abandonarPartida,
+        reconexionJugador,
         borrarPartida,
         getPosiblesJugadas,
         stop
