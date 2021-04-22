@@ -8,6 +8,9 @@ class SocketioServer{
     constructor(expressServer, port) {
         this.server = http.createServer(expressServer);
         this.io = new socketio.Server(this.server,{
+            allowEIO3: true,
+            pingInterval: 5000,
+            pingTimeout: 25000,
             cors:{
                 origin: "http://localhost:3001"
             }

@@ -3,6 +3,7 @@ const NodeCache = require('node-cache');
 const Mutex = require('async-mutex').Mutex;
 const config = require('../config')
 const Tablero = require('./Tablero')
+const Preguntas = require('../model/Preguntas')
 
 let salasPub = null; //NodeCache con las salas publicas pendientes de empezar
 let salasPriv = null; //NodeCache con las salas privadas pendientes de empezar
@@ -683,17 +684,15 @@ function borrarPartida(id_partida){
 }
 
 /**
- * Función que dada la id de la partida, el nombre del jugador, la casilla actual y el resultado de
- * lanzar el dado te devuelve la siguiente casilla del jugador junto con el tipo de casilla y la
- * pregunta correspondiente al tipo de casilla si  es que tiene.
+ * Recupera las siguientes casillas a poder visitar y una pregunta asociada a cada casilla
  *
- * @param id_partida Identificador de la partida
- * @param jugador Jugador que solicita el paso de turno o al cual se le pasa el tiempo (hace referencia al índice del vector)
- * @param actual Id de la casilla actual
- * @param dado Resultado obtenido tras lanzar el dado
- * @returns {number}
+ * @param id_partida
+ * @param jugador
+ * @param actual
+ * @param dado
+ * @returns {Promise<{res: null, code: number}|{res: [], code: number}>}
  */
-function getPosiblesJugadas(id_partida, jugador, actual, dado){
+async function getPosiblesJugadas(id_partida, jugador, actual, dado){
     try {
         let value = salasJuego.get(id_partida);
         if (value !== undefined) {
@@ -701,15 +700,20 @@ function getPosiblesJugadas(id_partida, jugador, actual, dado){
 
             if (data !== -1) { // Está en la lista
                 let movs = tablero.getPosiblesMovimientos(actual, dado, jugador);
-                if (movs === null) return 3;
-                //TODO llamar a la base de datos para recoger preguntas
+                if (movs === null) return {code: 3, res: null};
+                let resultado = [];
+                movs.forEach(cas => resultado.push({casilla: cas,
+                                                    pregunta: Preguntas.recuperarPregunta(cas.categoria)}))
+
+                return {code: 0, res: resultado};
+
             } else{
-                return 2;
+                return {code: 2, res: null};
             }
         }
     } catch (e) {
-        logger.error('Error al borrarPartida',e);
-        return 1;
+        logger.error('Error al conseguirJugadas',e);
+        return {code: 1, res: null};
     }
 }
 
