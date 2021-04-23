@@ -348,6 +348,23 @@ function obtenerJugadores(id_sala){
         if(value === undefined){
             return {code:1 , jugadores: []};
         } else {
+            return {code:0 , jugadores: value.jugadores};
+        }
+    } catch (e){
+        logger.error('Error al obtener jugadores de la sala', e);
+        return {code:1 , jugadores: []};
+    }
+}
+
+/**
+ *
+ * @param id_sala
+ * @returns {{code: number, jugadores: *[]}}
+ */
+function estadoPartida(id_sala){
+    try{
+        const value = salasJuego.get(id_sala);
+        if(value){
             let jugadores = [];
             value.jugadores.forEach( (jugador, _) => {
                 jugadores.push({
@@ -357,11 +374,12 @@ function obtenerJugadores(id_sala){
                 });
             });
 
-            return {code:0 , jugadores: jugadores};
+            return {code: 0, jugadores: jugadores}
+        }else{
+            return {code:1 , jugadores: []};
         }
-    } catch (e){
-        logger.error('Error al obtener jugadores de la sala', e);
-        return {code:1 , jugadores: []};
+    }catch (e){
+        return {code: 1, jugadores: []};
     }
 }
 
@@ -573,14 +591,23 @@ async function comenzarPartida(id_sala){
     }
 }
 
-function nuevaJugada(id_partida, jugador, nuevaCasilla, nuevoQuesito, finTurno){
+/**
+ *
+ * @param id_partida
+ * @param jugador
+ * @param nuevaCasilla
+ * @param nuevoQuesito
+ * @param finTurno
+ * @returns {Promise<number>}
+ */
+async function nuevaJugada(id_partida, jugador, nuevaCasilla, nuevoQuesito, finTurno){
     try{
         let value = salasJuego.get(id_partida);
         if(value !== undefined){
             if(value.turno !== jugador){
                 let index = value.jugadores.findIndex(t => t.nombre===jugador);
                 if(index !== -1){
-                    return value.mutex.runExclusive(()=>{
+                    return await value.mutex.runExclusive(()=>{
                         let res = 1;
                         if(nuevaCasilla !== "") {
                             value.jugadores[index].casilla = nuevaCasilla;
@@ -680,20 +707,21 @@ function obtenerTurno(id_partida){
  * Función para que un usuario abandone la partida
  * @param id_partida Identificador de la partida a borrar
  * @param jugador
+ * @returns {Promise<number>}
  */
-function abandonarPartida(id_partida, jugador){ //TODO Falta implementar que pueda volver el usuario
+async function abandonarPartida(id_partida, jugador){ //TODO Falta implementar que pueda volver el usuario
     try{
         let value = salasJuego.get(id_partida);
         if(value !== undefined){
             const data = value.jugadores.findIndex(t => t.nombre===jugador);
             if(data !== -1){ // Está en la lista
-                return value.mutex.runExclusive(()=>{
+                return await value.mutex.runExclusive(()=>{
                     let ret = 1, i = 1;
                     if(value.turno === jugador) { //Era su turno
-                        while(!value.jugadores[data+i%value.nJugadores].conectado){
+                        while(!value.jugadores[(data+i)%value.nJugadores].conectado){
                             i++;
                         }
-                        value.turno = value.jugadores[data+i%value.nJugadores].nombre;
+                        value.turno = value.jugadores[(data+i)%value.nJugadores].nombre;
                         ret = 0;
                     }
                     //value.jugadores.splice(data, 1); // Elimina al usuario
@@ -717,7 +745,7 @@ function abandonarPartida(id_partida, jugador){ //TODO Falta implementar que pue
     }
 }
 
-function reconexionJugador(id_partida, usuario){
+async function reconexionJugador(id_partida, usuario){
     try{
         let value = salasJuego.get(id_partida);
         if(value === undefined){
@@ -730,8 +758,8 @@ function reconexionJugador(id_partida, usuario){
             return 2;
         }
 
-        return value.mutex.runExclusive(()=>{
-            value.jugadores[index].conectado(true);
+        return await value.mutex.runExclusive(()=>{
+            value.jugadores[index].conectado = true;
             return 0;
         })
 
@@ -809,6 +837,7 @@ module.exports =
     {
         crear,
         obtenerJugadores,
+        estadoPartida,
         salaDelUsuario,
         crearSala,
         unirseSala,

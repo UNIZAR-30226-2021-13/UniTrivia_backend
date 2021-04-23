@@ -17,6 +17,7 @@
     <button onclick="crearSala()" >Crear sala</button>
     <button onclick="unirseSala()" >Unirse sala</button>
     <button onclick="buscarSala()" >Buscar sala</button>
+    <button onclick="reconexion()" >Reconexión</button>
     <button onclick="abandonarSala()" >Abandonar sala</button>
     <button onclick="comenzarPartida()" >Comenzar partida</button>
     <button onclick="terminar()">Cerrar conexion </button>
@@ -86,6 +87,10 @@
           console.log("Mensaje: " + msg + " de " + user);
         })
 
+        conn.on('estadoPartida', (info) => {
+          console.log(info);
+        })
+
         conn.on('disconnect', (reason)=>{
           console.log('Desconectado: '+ reason);
         })
@@ -127,12 +132,24 @@
         config(conn);
       }
 
+      function reconexion(){
+        if(conn !== undefined){return;}
+        conn = io(partida,{
+          extraHeaders:{
+            jwt: token,
+            operacion: "reconexion"
+          }
+        });
+        config(conn);
+      }
+
       function abandonarSala(){
         conn.emit("abandonarSala", (code)=>{
           console.log("Al abandonar sala: " + code.toString());
         });
 
       }
+
 
       function terminar(){
         conn.close();

@@ -60,14 +60,14 @@ class SocketioServer{
                     return;
                 }
 
-                idSala = res.sala;
-                if(cache.reconexionJugador(idSala, usuario) !== 0){
+                idSala = sala.sala;
+                if(await cache.reconexionJugador(idSala, usuario) !== 0){
                     socket.disconnect(true);
                     return
                 }
                 socket.join(idSala);
                 socket.to(idSala).emit('reconexionJugador', usuario); // no emite al propio socket
-                socket.emit('cargarJugadores', cache.obtenerJugadores(idSala));
+                socket.emit('estadoPartida', cache.estadoPartida(idSala));
 
             } else {
                 if (operacion === 'crearSala') {
@@ -200,7 +200,8 @@ class SocketioServer{
                 }
             });
 
-            socket.on('actualizarJugada', ({casilla, quesito,finTurno}, fn) => {let ok = cache.nuevaJugada(idSala, usuario, casilla, quesito, finTurno);
+            socket.on('actualizarJugada', async ({casilla, quesito,finTurno}, fn) => {
+                let ok = await cache.nuevaJugada(idSala, usuario, casilla, quesito, finTurno);
                 let resultado = {res: "error", info: "Error desconocido"}
                 switch (ok){
                     case 0:
@@ -270,9 +271,12 @@ class SocketioServer{
                     } else {
                         socket.to(idSala).emit('abandonoSala', usuario);
                     }
-                } else if(false){
-                    //TODO poner lo mismo que en socket.on('abandonarPartida')
-                    // o mandar un mensaje para poner un timeout de reconexion y si se cumple echarlo
+                } else if((res = await cache.abandonarPartida(idSala, usuario)) <= 1){
+                    if(res === 0){
+                        socket.to(idSala).emit('turno', cache.obtenerTurno(idSala));
+                    }
+                    socket.to(idSala).emit('jugadorSale', usuario);
+                    socket.leave(idSala);
                 } else {
                     //socket.disconnect(true);
                 }
