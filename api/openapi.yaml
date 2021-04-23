@@ -441,6 +441,41 @@ paths:
       tags:
       - Usuario
       x-eov-operation-handler: controllers/UsuarioController
+  /partida:
+    get:
+      description: |
+        Se le pasa comos parámetros el identificador que se ha asociado a dicho usuario en el login.
+
+        Devuelve el identificador de la partida en la que está (conectado o desconectado),
+        en caso de que no esté en ninguna partida string vacío. Si no se ha podido identificarlo,
+        devuelve un error.
+      operationId: partida
+      parameters:
+        - explode: false
+          in: header
+          name: jwt
+          required: true
+          schema:
+            type: string
+          style: simple
+      responses:
+        "200":
+          content:
+            text/plain:
+              schema:
+                type: string
+          description: Devuelve el identificador de la sala en la que está o un string vacío.
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Error al encontrar si el jugador está en una partida
+      security:
+        - jwt: []
+      tags:
+        - Partida
+      x-eov-operation-handler: controllers/PartidaController
 components:
   schemas:
     Error:

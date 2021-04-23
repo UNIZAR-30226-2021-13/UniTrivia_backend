@@ -210,7 +210,7 @@ function deleteUser(usuario) {
  * Función para obtener la sala en la que está un usuario
  *
  * @param usuario
- * @returns {{code: number, sala}|{code: number, sala: string}|{code: number, sala: string}}
+ * @returns {{code: number, sala: string}}
  */
 function salaDelUsuario(usuario){
     try {
@@ -218,7 +218,7 @@ function salaDelUsuario(usuario){
                 : {code: 0, sala: '' };
 
     } catch(err){
-        logger.error("Error al añadir usuario", err);
+        logger.error("Error al obtener sala del usuario ", err);
         return {code: 1, sala: '' };
     }
 }
@@ -255,7 +255,7 @@ function crearSala(usuario, priv){
  * @param {string} id_sala Identificador de la sala
  * @param {string} usuario Usuario a añadir a la sala
  */
-async function unirseSala(id_sala, usuario){//TODO Falta implementar que pueda volver el usuario
+async function unirseSala(id_sala, usuario){
     try{
         let value = undefined;
         if(salasPriv.has(id_sala)){
