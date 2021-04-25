@@ -441,7 +441,7 @@ paths:
       tags:
       - Usuario
       x-eov-operation-handler: controllers/UsuarioController
-  /partida:
+  /partida/reconexion:
     get:
       description: |
         Se le pasa comos parámetros el identificador que se ha asociado a dicho usuario en el login.
@@ -449,7 +449,7 @@ paths:
         Devuelve el identificador de la partida en la que está (conectado o desconectado),
         en caso de que no esté en ninguna partida string vacío. Si no se ha podido identificarlo,
         devuelve un error.
-      operationId: partida
+      operationId: reconexion
       parameters:
         - explode: false
           in: header

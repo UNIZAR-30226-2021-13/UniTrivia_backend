@@ -4,7 +4,7 @@ const cache = require("../utils/ServerCache");
 const JWT = require("../utils/JWT");
 
 
-const partida = ({jwt}) => new Promise(
+const reconexion = ({jwt}) => new Promise(
     async (resolve, reject) => {
         const usuario = JWT.validarToken(jwt);
         if(usuario){
@@ -24,5 +24,5 @@ const partida = ({jwt}) => new Promise(
 );
 
 module.exports = {
-  partida,
+    reconexion,
 };

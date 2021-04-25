@@ -2,10 +2,10 @@ const Controller = require('./Controller');
 const service = require('../services/PartidaService');
 
 
-const partida = async (request, response) => {
-    await Controller.handleRequest(request, response, service.partida);
+const reconexion = async (request, response) => {
+    await Controller.handleRequest(request, response, service.reconexion);
 };
 
 module.exports = {
-    partida,
+    reconexion,
 };
