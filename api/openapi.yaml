@@ -476,6 +476,80 @@ paths:
       tags:
         - Partida
       x-eov-operation-handler: controllers/PartidaController
+
+  /tienda/catalogo:
+    get:
+      description: |
+        Se le pasa comos parámetros el tipo de imágenes que se quieren recuperar
+
+        Devuelve una lista con los nombre de las imágenes del tipo correspondiente.
+      operationId: catalogo
+      parameters:
+        - explode: false
+          in: header
+          name: tipo
+          required: true
+          schema:
+            type: string
+            enum:
+              - avatar
+              - formFicha
+              - banner
+          style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  type: string
+                type: array
+
+          description: Devuelve el array con los nombre de las imágenes del tipo correspondiente
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Error al recuperar imágenes
+      tags:
+        - Tienda
+    x-eov-operation-handler: controllers/TiendaController
+
+  /tienda/comprar/:
+    get:
+      description: |
+        Se le pasa el nombre de la imagen comprada
+
+        Actualiza la base de datos del usuario para incorporar la imagen comprada a su lista de
+        imágenes disponibles.
+      operationId: reconexion
+      parameters:
+
+        - explode: false
+          in: header
+          name: nombre
+          required: true
+          schema:
+            type: string
+         style: simple
+      responses:
+        "200":
+          content:
+            text/plain:
+              schema:
+                type: string
+          description: Devuelve Ok si éxito
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Error al actualizar la base de datos o no tiene dinero suficiente o ya está comprado
+      tags:
+        - Tienda
+    x-eov-operation-handler: controllers/TiendaController
+
 components:
   schemas:
     Error:
@@ -536,7 +610,7 @@ components:
           description: El ObjectID de la forma de la ficha del usuario
           type: string
         comprados:
-          description: El array de ObjectID con los objetos comproados por el usuario
+          description: El array de strings con las imagenes comproadas por el usuario
             del usuario
           items:
             type: string
