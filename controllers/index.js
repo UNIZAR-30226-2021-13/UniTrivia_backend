@@ -1,7 +1,9 @@
-const UsuarioController = require('./UsuarioController');
 const PartidaController = require('./PartidaController');
+const TiendaController = require('./TiendaController');
+const UsuarioController = require('./UsuarioController');
 
 module.exports = {
-  UsuarioController,
   PartidaController,
+  TiendaController,
+  UsuarioController,
 };
