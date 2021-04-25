@@ -19,7 +19,16 @@
     <button onclick="buscarSala()" >Buscar sala</button>
     <button onclick="reconexion()" >Reconexión</button>
     <button onclick="abandonarSala()" >Abandonar sala</button>
+  </div>
+  <div>
     <button onclick="comenzarPartida()" >Comenzar partida</button>
+    <button> onclick="posiblesJugadas()" >Posibles Jugadas</button>
+
+    <label for="sigcasilla">Sig Casilla</label><input type="text" id="sigcasilla"/>
+    <label for="tipo">Tira otra vez?</label><input type="text" id="tipo"/>
+    <label for="acierta">Obtendrá un quesito?</label><input type="text" id="acierta"/>
+    <button onclick="actualizarJugada()">Actualizar Jugada </button>
+    <button onclick="abandonarPartida()">Abandonar Partida </button>
     <button onclick="terminar()">Cerrar conexion </button>
   </div>
 
@@ -31,6 +40,9 @@
       let token;
       let conn = undefined;
       let sala = undefined;
+      let casilla = 777;
+      let dado = 0;
+      let quesitos = [];
 
       let xhr = new XMLHttpRequest(),
               method = 'GET',
@@ -91,9 +103,32 @@
           console.log(info);
         })
 
+        conn.on('jugadorSale', (usuario) => {
+          console.log("Abandona partida: " + usuario);
+        })
+
+        conn.on('finDelJuego', (usuario) => {
+          console.log("Fin del juego, gana: " + usuario);
+        })
+
+        conn.on('jugada', ({user, casilla, ques}) => {
+          console.log("Jugada de " + user + " que pasa a la casilla " + casilla +
+          " tras obtener el quesito " + ques);
+        })
+
         conn.on('disconnect', (reason)=>{
           console.log('Desconectado: '+ reason);
         })
+      }
+
+      function randString(length) {
+        let result = '';
+        let characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-';
+        let charactersLength = characters.length;
+        for (let i = 0; i < length; i++) {
+          result += characters.charAt(Math.floor(Math.random() * charactersLength));
+        }
+        return result;
       }
 
       function crearSala(){
@@ -150,7 +185,6 @@
 
       }
 
-
       function terminar(){
         conn.close();
         conn = undefined;
@@ -159,6 +193,31 @@
       function comenzarPartida(){
         conn.emit("comenzarPartida", (res)=>{
           console.log("Al comenzar partida: " + res.res + " " + res.info);
+        });
+      }
+
+      function posiblesJugadas(){
+        dado = 1+Math.random()*6;
+        conn.emit("posiblesJugadas", dado, (res)=>{
+          console.log("Posibles jugadas con dado: " + dado.toString());
+          console.log(res['res']);
+          console.log(res['info']);
+        });
+      }
+
+      function actualizarJugada(){
+        if(document.getElementById('acierta').value === "true") quesitos.push(randString(8));
+        conn.emit("actualizarJugada", {casilla: parseInt(document.getElementById('sigcasilla').value),
+          quesito: quesitos,
+          finTurno: document.getElementById('tipo').value === "true" ? false : true,
+        }, (res)=>{
+          console.log("Jugada actualizada: " + res['res'] + " " + res['info']);
+        });
+      }
+
+      function abandonarPartida(){
+        conn.emit("abandonarSala", (res)=>{
+          console.log("Al abandonar partida: " + res["res"] + " " + res['info']);
         });
       }
   </script>

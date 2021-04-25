@@ -139,8 +139,10 @@ components:
     cambioLider:
     abandonoSala:
     comienzoPartida:
+    jugada:
     cargarJugadores:
     nuevoJugador:
+    finDelJuego:
 
     chat:
       payload:
