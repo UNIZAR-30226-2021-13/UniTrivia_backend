@@ -38,8 +38,6 @@ const login = ({ username, password }) => new Promise(
   async (resolve, reject) => {
     try {
         const {code, id} = await modelo.Usuarios.logear(username, password);
-        console.log(code)
-        console.log(id)
         switch(code){
             case 0:
                 console.log("Entra 0")
@@ -86,6 +84,9 @@ const modifyAvatar = ({ jwt, idavatar }) => new Promise(
             case 1:
                 reject(Service.rejectResponse({code: 1, message: "Error en la BD"},400));
                 break;
+            case 2:
+                reject(Service.rejectResponse({code: 2, message: "Usuario no identificado"},400));
+                break;
             default:
                 reject(Service.rejectResponse({code: -1, message: "Error desconocido"},500));
 
@@ -115,6 +116,9 @@ const modifyBanner = ({ jwt, idbanner }) => new Promise(
             case 1:
                 reject(Service.rejectResponse({code: 1, message: "Error en la BD"},400));
                 break;
+            case 2:
+                reject(Service.rejectResponse({code: 2, message: "Usuario no identificado"},400));
+                break;
             default:
                 reject(Service.rejectResponse({code: -1, message: "Error desconocido"},500));
 
@@ -143,6 +147,9 @@ const modifyFormFicha = ({ jwt, idformficha }) => new Promise(
                 break;
             case 1:
                 reject(Service.rejectResponse({code: 1, message: "Error en la BD"},400));
+                break;
+            case 2:
+                reject(Service.rejectResponse({code: 2, message: "Usuario no identificado"},400));
                 break;
             default:
                 reject(Service.rejectResponse({code: -1, message: "Error desconocido"},500));
