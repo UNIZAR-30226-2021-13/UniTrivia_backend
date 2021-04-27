@@ -58,6 +58,12 @@ const comprar = ({ nombre, jwt }) => new Promise(
               case 3:
                   reject(Service.rejectResponse({code: 3, message: "Item no existe"},400));
                   break;
+              case 4:
+                  reject(Service.rejectResponse({code: 4, message: "Usuario no existe"},400));
+                  break;
+              case 5:
+                  reject(Service.rejectResponse({code: 5, message: "No tiene suficiente dinero"},400));
+                  break;
               default:
                   reject(Service.rejectResponse({code: -1, message: "Error desconocido"},500));
 

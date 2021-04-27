@@ -55,10 +55,26 @@ async function comprarItem(token, nombre){
                 return 3;
             }
 
-            const result = await usuarios.updateOne({_id: obj.user}, {$push: {rfs: nombre}});
+            const precio = exists['precio'];
+            const user = await imagenes.findOne({_id: obj.user});
+            if(!user){
+                logger.error("Error comprarItem: usuario no existe");
+                return 4;
+            }
+
+            if(exists['precio'] > user['cns']){
+                logger.error("Error comprarItem: no tiene suficiente dinero");
+                return 5;
+
+            }
+
+            const result = await usuarios.updateOne({_id: obj.user},
+                {$push: {rfs: nombre}}, {$set: {cns: Int32(user['cns'] - exists['precio'] )}});
             if(result['modifiedCount'] === 1){
-                return 0
+                return 0;
+
             }else{
+                logger.error("Error comprarItem: error en la BD.");
                 return 1;
             }
 
