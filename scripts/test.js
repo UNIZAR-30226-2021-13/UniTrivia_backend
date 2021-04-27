@@ -42,21 +42,21 @@ db.createCollection("usuarios",{
 					description: "Número de partidas ganadas"
 				},
 				avtr: {
-					bsonType: "objectId",
+					bsonType: "string",
 					description: "Id del avatar"
 				},
 				bnr: {
-					bsonType: "objectId",
+					bsonType: "string",
 					description: "Id del banner"
 				},
 				fich: {
-					bsonType: "objectId",
+					bsonType: "string",
 					description: "Id de la forma de ficha del usuario"
 				},
 				rfs: {
 					bsonType: "array",
 					items:{
-						bsonType: "objectId"
+						bsonType: "string"
 					},
 					description: "Ids de todos los objetos comprados por el usuario"
 				}
@@ -122,16 +122,16 @@ db.createCollection("imagenes",{
 			required: ["_id", "tipo"],
 			properties: {
 				_id: {
-					bsonType: "objectId",
+					bsonType: "string",
 					description: "Identificador único de la imagen. Id y Obligatorio"
 				},
 				tipo: {
 					enum: [ "Avatar", "Banner", "Ficha", null ],
 					description: "Cadena que contiene el tipo de imagen. Enumeración y Obligatorio"
 				},
-				img: {
-                	bsonType: "binData",
-                	description: "Datos binarios de la imagen"
+				precio: {
+					bsonType: "int",
+					description: "Precio del objecto a comprar"
 				}
 			}
 		}

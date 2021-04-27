@@ -25,4 +25,6 @@ function getBD(){
     return bd;
 }
 
-module.exports = {iniciar, terminar, getBD};
+const Int = require('mongodb').Int32;
+
+module.exports = {iniciar, terminar, getBD, Int};

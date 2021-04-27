@@ -38,9 +38,10 @@ const catalogo = ({ tipo }) => new Promise(
 * Se le pasa el nombre de la imagen comprada  Actualiza la base de datos del usuario para incorporar la imagen comprada a su lista de imágenes disponibles. 
 *
 * nombre String 
+* jwt String 
 * returns String
 * */
-const comprar = ({ nombre }) => new Promise(
+const comprar = ({ nombre, jwt }) => new Promise(
   async (resolve, reject) => {
       try {
           const result = await Tienda.comprarItem(jwt, nombre);
@@ -69,7 +70,37 @@ const comprar = ({ nombre }) => new Promise(
   },
 );
 
+const insertarMonedas = ({cantidad, jwt}) => new Promise(
+    async (resolve, reject) => {
+        try {
+            const result = await Tienda.insertarMonedas(cantidad, jwt);
+            switch(result){
+                case 0:
+                    resolve(Service.successResponse("OK", 200));
+                    break;
+                case 1:
+                    reject(Service.rejectResponse({code: 1, message: "Error en la BD"},400));
+                    break;
+                case 2:
+                    reject(Service.rejectResponse({code: 2, message: "Usuario no identificado"},400));
+                    break;
+                case 3:
+                    reject(Service.rejectResponse({code: 3, message: "Cantidad no válida"},400));
+                    break;
+                default:
+                    reject(Service.rejectResponse({code: -1, message: "Error desconocido"},500));
+
+            }
+        } catch (e) {
+            reject(Service.rejectResponse(
+                {code: -1, message: "Error desconocido"},500
+            ));
+        }
+    },
+);
+
 module.exports = {
   catalogo,
   comprar,
+  insertarMonedas,
 };

@@ -449,6 +449,11 @@ paths:
           required: true
           schema:
             type: string
+        - in: header
+          name: jwt
+          required: true
+          schema:
+            type: string
       responses:
         "200":
           content:
@@ -462,8 +467,48 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
           description: Error al actualizar la base de datos o no tiene dinero suficiente o ya está comprado
+      security:
+        - jwt: []
       tags:
         - Tienda
+  /tienda/insertarMonedas:
+    post:
+      description: |
+        Se le pasa la cantidad de monedas a insertar.
+
+        Actualiza la base de datos del usuario para incorporar las monedas a su cuenta.
+        Si da error se informa.
+      operationId: insertarMonedas
+      parameters:
+        - in: header
+          name: cantidad
+          required: true
+          schema:
+            type: integer
+        - in: header
+          name: jwt
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            text/plain:
+              schema:
+                type: string
+          description: Devuelve Ok si éxito
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: |
+            Error al actualizar la base de datos o no es un jwt válido.
+      security:
+        - jwt: []
+      tags:
+        - Tienda
+        - Usuario
 components:
   schemas:
     Error:

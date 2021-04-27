@@ -44,10 +44,6 @@ const recoverPassword = async (request, response) => {
   await Controller.handleRequest(request, response, service.recoverPassword);
 };
 
-const recoverQuestion = async (request, response) => {
-  await Controller.handleRequest(request, response, service.recoverQuestion);
-};
-
 const register = async (request, response) => {
   await Controller.handleRequest(request, response, service.register);
 };
@@ -63,6 +59,5 @@ module.exports = {
   profileDELETE,
   profileGET,
   recoverPassword,
-  recoverQuestion,
   register,
 };

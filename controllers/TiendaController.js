@@ -16,8 +16,13 @@ const comprar = async (request, response) => {
   await Controller.handleRequest(request, response, service.comprar);
 };
 
+const insertarMonedas = async (request, response) => {
+  await Controller.handleRequest(request, response, service.insertarMonedas);
+};
+
 
 module.exports = {
   catalogo,
   comprar,
+  insertarMonedas,
 };
