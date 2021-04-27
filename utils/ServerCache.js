@@ -364,7 +364,7 @@ function obtenerJugadores(id_sala){
 function estadoPartida(id_sala){
     try{
         const value = salasJuego.get(id_sala);
-        if(value){
+        if(value !== undefined){
             let jugadores = [];
             value.jugadores.forEach( (jugador, _) => {
                 jugadores.push({
@@ -558,7 +558,7 @@ function liderDeSala(id_sala){
 async function comenzarPartida(id_sala){
     try {
         const sala = salasPub.has(id_sala) ? salasPub.get(id_sala) : salasPriv.get(id_sala);
-        if (sala){
+        if (sala !== undefined){
             return await sala.mutex.runExclusive(async () => {
                 console.log(sala.jugadores)
                 console.log(sala.nJugadores)
@@ -568,7 +568,7 @@ async function comenzarPartida(id_sala){
                 }
                 let jugadores = []
                 sala.jugadores.forEach(function(jugador, index, array){
-                    jugadores.push( new NodoJugador(jugador, 0, [], config.MAX_QUESITOS));
+                    jugadores.push( new NodoJugador(jugador, 777, [], config.MAX_QUESITOS));
                 })
                 const partida = new NodoJuego(sala.jugadores[~~(Math.random() * sala.nJugadores)], jugadores, sala.nJugadores);
                 salasJuego.set(id_sala, partida);
@@ -604,7 +604,7 @@ async function nuevaJugada(id_partida, jugador, nuevaCasilla, nuevoQuesito, finT
     try{
         let value = salasJuego.get(id_partida);
         if(value !== undefined){
-            if(value.turno !== jugador){
+            if(value.turno === jugador){
                 let index = value.jugadores.findIndex(t => t.nombre===jugador);
                 if(index !== -1){
                     return await value.mutex.runExclusive(()=>{
@@ -675,12 +675,16 @@ function obtenerPosicion(id_partida, usuario){
     try{
         const value = salasJuego.get(id_partida);
         if(value !== undefined){
-            const data = value.jugadores.findIndex(t => t.nombre===jugador);
+            console.log("obtenerPosicion: salasJuego.get devuelve sala");
+            const data = value.jugadores.findIndex(t => t.nombre===usuario);
+            console.log("obtenerPosicion: findIndex =", data);
             return value.jugadores[data].casilla;
         }else{
+            console.log("obtenerPosicion: salasJuego.get undefined");
             return undefined;
         }
     }catch (e) {
+        console.log("obtenerPosicion: Exception: ", e);
         return undefined;
     }
 }

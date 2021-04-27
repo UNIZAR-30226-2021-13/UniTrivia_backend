@@ -22,7 +22,7 @@
   </div>
   <div>
     <button onclick="comenzarPartida()" >Comenzar partida</button>
-    <button> onclick="posiblesJugadas()" >Posibles Jugadas</button>
+    <button onclick="posiblesJugadas()" >Posibles Jugadas</button>
 
     <label for="sigcasilla">Sig Casilla</label><input type="text" id="sigcasilla"/>
     <label for="tipo">Tira otra vez?</label><input type="text" id="tipo"/>
@@ -112,8 +112,12 @@
         })
 
         conn.on('jugada', ({user, casilla, ques}) => {
-          console.log("Jugada de " + user + " que pasa a la casilla " + casilla +
-          " tras obtener el quesito " + ques);
+          if(ques !== "") {
+            console.log("Jugada de " + user + " que pasa a la casilla " + casilla +
+                    " y obtiene el quesito " + ques);
+          }else{
+            console.log("Jugada de " + user + " que pasa a la casilla " + casilla);
+          }
         })
 
         conn.on('disconnect', (reason)=>{
@@ -197,7 +201,7 @@
       }
 
       function posiblesJugadas(){
-        dado = 1+Math.random()*6;
+        dado = Math.round(1+Math.random()*5);
         conn.emit("posiblesJugadas", dado, (res)=>{
           console.log("Posibles jugadas con dado: " + dado.toString());
           console.log(res['res']);
@@ -209,7 +213,7 @@
         if(document.getElementById('acierta').value === "true") quesitos.push(randString(8));
         conn.emit("actualizarJugada", {casilla: parseInt(document.getElementById('sigcasilla').value),
           quesito: quesitos,
-          finTurno: document.getElementById('tipo').value === "true" ? false : true,
+          finTurno: document.getElementById('tipo').value !== "true" ,
         }, (res)=>{
           console.log("Jugada actualizada: " + res['res'] + " " + res['info']);
         });

@@ -163,10 +163,13 @@ class SocketioServer{
             });
 
             socket.on('posiblesJugadas', async (dado, fn) => {
+                console.log("Entrada a posiblesJugadas. dado = ", dado);
                 const posicion = cache.obtenerPosicion(idSala, usuario);
+                console.log("posiblesJugadas.obtenerPosicion(idSala=", idSala,";usuario=",usuario,") = ", posicion);
                 const turno = cache.obtenerTurno(idSala);
+                console.log("posiblesJugadas.obtenerTurno(idSala=", idSala,") = ", turno);
                 if(turno === usuario) {
-                    if(posicion){
+                    if(posicion !== undefined){
                         if(dado < 0 || dado > 6){
                             fn({res: "err", info: "Dado incorrecto"});
                             return ;
