@@ -10,12 +10,12 @@ const Tablero = require('../utils/Tablero');
  */
 async function testSalas(){
     try{
-        let usuario1 = 'bqsf1';
-        let usuario2 = 'bqsf2';
-        let usuario3 = 'bqsf3';
-        let usuario4 = 'bqsf4';
-        let usuario5 = 'bqsf5';
-        let usuario6 = 'bqsf6';
+        let usuario1 = 'test1';
+        let usuario2 = 'test2';
+        let usuario3 = 'test3';
+        let usuario4 = 'test4';
+        let usuario5 = 'test5';
+        let usuario6 = 'test6';
 
 
         const res1 = await cache.buscarPartida(usuario1)
@@ -162,4 +162,83 @@ async function testTablero(){
     }
 }
 
-module.exports = { testSalas, testTablero }
+async function testPartidas(){
+    const usuario1 = 'test1';
+    const usuario2 = 'test2';
+    const usuario3 = 'test3';
+
+    const res_2 = await cache.crearSala(usuario1, true);
+    if(res_2.code !== 0){
+        logger.error('Error test partidas: Preparación crear sala');
+        return 1;
+    }
+    const idSala = res_2.sala;
+
+    const res_1 = await cache.unirseSala(idSala, usuario2);
+    if(res_1.code !== 0){
+        logger.error('Error test partidas: Preparación unirse sala');
+        return 1;
+    }
+
+    const res_0 = await cache.comenzarPartida(idSala);
+    if(res_0.code !== 0){
+        logger.error('Error test partidas: Preparación empezar partida');
+        return 1;
+    }
+
+    const turno = cache.obtenerTurno(idSala);
+    if(turno === undefined || !(turno === usuario1 || turno === usuario2)){
+        logger.error('Error test partidas: 1. Turno no válido.');
+        return 1;
+    }
+
+    const res2 = cache.obtenerTurno(idSala+"___");
+    //No es válido porque es más largo que el id y por tanto no existe una partida así
+    if(res2 !== undefined){
+        logger.error('Error test partidas: 2. Turno debería ser undefined.');
+        return 1;
+    }
+
+    const res3 = cache.obtenerPosicion(idSala, usuario1);
+    if(res3 === undefined || res3 !== 777){
+        logger.error('Error test partidas: 3. Posición debería ser 777.');
+        return 1;
+    }
+
+    const res4 = cache.obtenerPosicion(idSala, usuario3);
+    if(res4 !== undefined){
+        logger.error('Error test partidas: 4. Posición de usuario que no existe debe ser undefined.');
+        return 1;
+    }
+
+
+    const res5 = cache.obtenerPosicion(idSala+"___", usuario1);
+    if(res5 !== undefined){
+        logger.error('Error test partidas: 5. Posición en sala que no existe debe ser undefined.');
+        return 1;
+    }
+
+    const res6 = cache.obtenerQuesitosRestantes(idSala, usuario1);
+    if(res6 === undefined || res6 !== config.MAX_QUESITOS){
+        logger.error('Error test partidas: 6. Quesito restantes debería ser ' + config.MAX_QUESITOS);
+        return 1;
+    }
+
+    const res7 = cache.obtenerQuesitosRestantes(idSala, usuario3);
+    if(res7 !== undefined){
+        logger.error('Error test partidas: 7. Quesito restantes de usuario que no existe debe ser undefined.');
+        return 1;
+    }
+
+
+    const res8 = cache.obtenerQuesitosRestantes(idSala+"___", usuario1);
+    if(res8 !== undefined){
+        logger.error('Error test partidas: 8. Quesito restantes en sala que no existe debe ser undefined.');
+        return 1;
+    }
+
+
+
+}
+
+module.exports = { testSalas, testTablero, testPartidas }
