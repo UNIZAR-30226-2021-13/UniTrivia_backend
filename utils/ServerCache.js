@@ -813,14 +813,21 @@ async function getPosiblesJugadas(id_partida, jugador, actual, dado){
 
                 let resultado = [];
                 for(let i = 0; i < movs.length; i++) {
-                    let res = await Preguntas.recuperarPregunta(movs[i].categoria)
-                    if (res.code === 0) {
+                    if(movs[i].tipo !== "Dado") {
+                        let res = await Preguntas.recuperarPregunta(movs[i].categoria)
+                        if (res.code === 0) {
+                            resultado.push({
+                                casilla: movs[i],
+                                pregunta: res.preg
+                            });
+                        } else {
+                            return {code: 4, res: null}
+                        }
+                    } else {
                         resultado.push({
                             casilla: movs[i],
-                            pregunta: res.preg
+                            pregunta: null
                         });
-                    } else {
-                        return {code: 4, res: null}
                     }
                 }
 

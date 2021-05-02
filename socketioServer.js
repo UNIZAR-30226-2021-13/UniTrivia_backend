@@ -211,6 +211,7 @@ class SocketioServer{
                         socket.to(idSala).emit('turno', cache.obtenerTurno(idSala));
                     case 1:
                         if(cache.obtenerQuesitosRestantes(idSala, usuario) === 0){
+                            console.log("Al menos entra aqui")
                             this.io.in(idSala).emit("finDelJuego",usuario);
                         }
                         socket.to(idSala).emit("jugada", {
