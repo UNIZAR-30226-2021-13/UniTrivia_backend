@@ -186,6 +186,15 @@ async function testPartidas(){
         return 1;
     }
 
+    ////////////////////////////////////////
+    //          TEST DE obtenerTurno
+    //  Clase de equivalencia válida:
+    //      1.- Existe la sala
+    //
+    //  Clases de equivalencia no válidas
+    //      2.- No existe la sala
+    //
+
     const turno = cache.obtenerTurno(idSala);
     if(turno === undefined || !(turno === usuario1 || turno === usuario2)){
         logger.error('Error test partidas: 1. Turno no válido.');
@@ -198,6 +207,16 @@ async function testPartidas(){
         logger.error('Error test partidas: 2. Turno debería ser undefined.');
         return 1;
     }
+
+    ////////////////////////////////////////
+    //          TEST DE obtenerPosicion
+    //  Clase de equivalencia válida:
+    //      1.- Existe la sala y el usuario
+    //
+    //  Clases de equivalencia no válidas
+    //      2.- No existe el usuario
+    //      3.- No existe la sala
+    //
 
     const res3 = cache.obtenerPosicion(idSala, usuario1);
     if(res3 === undefined || res3 !== 777){
@@ -218,6 +237,16 @@ async function testPartidas(){
         return 1;
     }
 
+
+    ////////////////////////////////////////////////////
+    //          TEST DE obtenerQuesitosRestantes
+    //  Clase de equivalencia válida:
+    //      1.- Existe la sala y el usuario
+    //
+    //  Clases de equivalencia no válidas
+    //      2.- No existe el usuario
+    //      3.- No existe la sala
+    //
     const res6 = cache.obtenerQuesitosRestantes(idSala, usuario1);
     if(res6 === undefined || res6 !== config.MAX_QUESITOS){
         logger.error('Error test partidas: 6. Quesito restantes debería ser ' + config.MAX_QUESITOS);
@@ -237,7 +266,15 @@ async function testPartidas(){
         return 1;
     }
 
-
+/*
+    ////////////////////////////////////////////////////
+    //          TEST DE nuevaJugada
+    //  Clases de equivalencia válidas:
+    //
+    //  Clases de equivalencia no válidas
+    //
+    const res9 = await cache.nuevaJugada(idSala, turno, 61, "azul", false);
+*/
 
 }
 

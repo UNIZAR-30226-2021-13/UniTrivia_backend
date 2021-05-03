@@ -612,10 +612,12 @@ async function nuevaJugada(id_partida, jugador, nuevaCasilla, nuevoQuesito, finT
                         if(nuevaCasilla !== "") {
                             value.jugadores[index].casilla = nuevaCasilla;
                         }
-                        if(nuevoQuesito !== "" && !nuevoQuesito in value.jugadores[index].quesitos) {
+                        const index2 = value.jugadores[index].quesitos.findIndex(t=> t === nuevoQuesito);
+                        if(nuevoQuesito !== "" && index2 ===-1) {
                             value.jugadores[index].quesitos.push(nuevoQuesito);
                             value.jugadores[index].nRestantes--;
                         }
+                        console.log(value.jugadores[index]);
                         if(finTurno && value.jugadores[index].nRestantes > 0) {
                             let i = 1
                             while (!value.jugadores[(index + i) % value.nJugadores].conectado) {
@@ -623,8 +625,6 @@ async function nuevaJugada(id_partida, jugador, nuevaCasilla, nuevoQuesito, finT
                             }
                             value.turno = value.jugadores[(index + i) % value.nJugadores].nombre;
                             res = 0;
-                        }else if(value.jugadores[index].nRestantes === 0){
-                            borrarPartida(id_partida);
                         }
                         return res;
                     })

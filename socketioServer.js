@@ -208,17 +208,20 @@ class SocketioServer{
                 let resultado = {res: "error", info: "Error desconocido"}
                 switch (ok){
                     case 0:
-                        socket.to(idSala).emit('turno', cache.obtenerTurno(idSala));
                     case 1:
-                        if(cache.obtenerQuesitosRestantes(idSala, usuario) === 0){
-                            console.log("Al menos entra aqui")
-                            this.io.in(idSala).emit("finDelJuego",usuario);
-                        }
                         socket.to(idSala).emit("jugada", {
                             user: usuario,
                             casilla: casilla,
                             ques: quesito
                         });
+                        if(ok == 0){
+                            socket.to(idSala).emit('turno', cache.obtenerTurno(idSala));
+                        }
+                        if(cache.obtenerQuesitosRestantes(idSala, usuario) === 0){
+                            console.log("Al menos entra aqui")
+                            this.io.in(idSala).emit("finDelJuego",usuario);
+                            cache.borrarPartida(idSala);
+                        }
                         resultado = {res: "ok", info: ""};
                         break;
                     case 2:

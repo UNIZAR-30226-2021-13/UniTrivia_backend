@@ -210,9 +210,10 @@
       }
 
       function actualizarJugada(){
-        if(document.getElementById('acierta').value === "true") quesitos.push(randString(8));
+        const nuevoQuesito = randString(8)
+        if(document.getElementById('acierta').value === "true") quesitos.push(nuevoQuesito);
         conn.emit("actualizarJugada", {casilla: parseInt(document.getElementById('sigcasilla').value),
-          quesito: quesitos,
+          quesito: nuevoQuesito,
           finTurno: document.getElementById('tipo').value !== "true" ,
         }, (res)=>{
           console.log("Jugada actualizada: " + res['res'] + " " + res['info']);
