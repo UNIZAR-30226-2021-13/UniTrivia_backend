@@ -2,11 +2,14 @@ const logger = require('../logger');
 const NodeCache = require('node-cache');
 const Mutex = require('async-mutex').Mutex;
 const config = require('../config')
+const Tablero = require('./Tablero')
+const Preguntas = require('../model/Preguntas')
 
 let salasPub = null; //NodeCache con las salas publicas pendientes de empezar
 let salasPriv = null; //NodeCache con las salas privadas pendientes de empezar
 let salasJuego = null; //NodeCache con las salas en las que actualmente se está jugando
 let usuariosEnSala = null; //NodeCache con los usuarios y las salas en las que están
+let tablero = null;
 
 class NodoJugador{
     get nombre() {
@@ -40,6 +43,14 @@ class NodoJugador{
     set nRestantes(value) {
         this._nRestantes = value;
     }
+
+    get conectado(){
+        return this._conectado;
+    }
+
+    set conectado(value){
+        this._conectado = value;
+    }
     /**
      * Constructor
      *
@@ -53,6 +64,7 @@ class NodoJugador{
         this._casilla = casilla;
         this._quesitos = quesitos;
         this._nRestantes = nRestantes;
+        this._conectado = true;
     }
 }
 
@@ -90,7 +102,7 @@ class NodoJuego{
         this._turno = turno;
         this._jugadores = jugadores;
         this._nJugadores = nJugadores;
-        //this.mutex = new Mutex();
+        this.mutex = new Mutex();
     }
 }
 
@@ -131,6 +143,7 @@ function crear(){
         salasPriv = new NodeCache({maxKeys: 20, useClones: false});
         salasJuego = new NodeCache({stdTTL: 72000, useClones: false});
         usuariosEnSala = new NodeCache({useClones: false});
+        tablero = new Tablero();
 
     } catch(err){
         logger.error("Error al crear la memoria cache", err);
@@ -197,7 +210,7 @@ function deleteUser(usuario) {
  * Función para obtener la sala en la que está un usuario
  *
  * @param usuario
- * @returns {{code: number, sala}|{code: number, sala: string}|{code: number, sala: string}}
+ * @returns {{code: number, sala: string}}
  */
 function salaDelUsuario(usuario){
     try {
@@ -205,7 +218,7 @@ function salaDelUsuario(usuario){
                 : {code: 0, sala: '' };
 
     } catch(err){
-        logger.error("Error al añadir usuario", err);
+        logger.error("Error al obtener sala del usuario ", err);
         return {code: 1, sala: '' };
     }
 }
@@ -242,7 +255,7 @@ function crearSala(usuario, priv){
  * @param {string} id_sala Identificador de la sala
  * @param {string} usuario Usuario a añadir a la sala
  */
-async function unirseSala(id_sala, usuario){//TODO Falta implementar que pueda volver el usuario
+async function unirseSala(id_sala, usuario){
     try{
         let value = undefined;
         if(salasPriv.has(id_sala)){
@@ -324,26 +337,49 @@ async function buscarPartida(usuario){
 function obtenerJugadores(id_sala){
     try{
         let value = undefined;
-        if(salasPriv.has(id_sala)){
+        if(salasPriv.has(id_sala)) {
             value = salasPriv.get(id_sala);
-            if(value === undefined){
-                return {code:1 , jugadores: []};
-            } else {
-                return {code:0 , jugadores: value.jugadores};
-            }
-        } else if (salasPub.has(id_sala)){
+        }else if(salasPub.has(id_sala)){
             value = salasPub.get(id_sala);
-            if(value === undefined){
-                return {code:1 , jugadores: []};
-            } else {
-                return {code:0 , jugadores: value.jugadores};
-            }
         } else {
             return {code:1 , jugadores: []};
+        }
+
+        if(value === undefined){
+            return {code:1 , jugadores: []};
+        } else {
+            return {code:0 , jugadores: value.jugadores};
         }
     } catch (e){
         logger.error('Error al obtener jugadores de la sala', e);
         return {code:1 , jugadores: []};
+    }
+}
+
+/**
+ *
+ * @param id_sala
+ * @returns {{code: number, jugadores: *[]}}
+ */
+function estadoPartida(id_sala){
+    try{
+        const value = salasJuego.get(id_sala);
+        if(value !== undefined){
+            let jugadores = [];
+            value.jugadores.forEach( (jugador, _) => {
+                jugadores.push({
+                    usuario: jugador.nombre,
+                    casilla: jugador.casilla,
+                    quesitos: jugador.quesitos
+                });
+            });
+
+            return {code: 0, jugadores: jugadores}
+        }else{
+            return {code:1 , jugadores: []};
+        }
+    }catch (e){
+        return {code: 1, jugadores: []};
     }
 }
 
@@ -495,6 +531,26 @@ async function borrarSala(id_sala){
 }
 
 /**
+ * De vuelve el lider de la sala en caso de que exista,
+ * si no devuelve undefined.
+ *
+ * @param id_sala Identificador de la sala
+ * @returns {string|undefined} Identificador del lider de la sala
+ */
+function liderDeSala(id_sala){
+    try{
+        const sala = salasPub.has(id_sala) ? salasPub.get(id_sala) : salasPriv.get(id_sala);
+        if(sala){
+            return sala.lider;
+        }else{
+            return undefined;
+        }
+    }catch (e){
+        return undefined;
+    }
+}
+
+/**
  * Función para comenzar la partida con los jugadores presentes en la sala.
  * Borra la sala de caché y crea la partida en la caché correspondiente.
  * @param id_sala
@@ -502,7 +558,7 @@ async function borrarSala(id_sala){
 async function comenzarPartida(id_sala){
     try {
         const sala = salasPub.has(id_sala) ? salasPub.get(id_sala) : salasPriv.get(id_sala);
-        if (sala){
+        if (sala !== undefined){
             return await sala.mutex.runExclusive(async () => {
                 console.log(sala.jugadores)
                 console.log(sala.nJugadores)
@@ -512,7 +568,7 @@ async function comenzarPartida(id_sala){
                 }
                 let jugadores = []
                 sala.jugadores.forEach(function(jugador, index, array){
-                    jugadores.push( new NodoJugador(jugador, 0, [], config.MAX_QUESITOS));
+                    jugadores.push( new NodoJugador(jugador, 777, [], config.MAX_QUESITOS));
                 })
                 const partida = new NodoJuego(sala.jugadores[~~(Math.random() * sala.nJugadores)], jugadores, sala.nJugadores);
                 salasJuego.set(id_sala, partida);
@@ -536,111 +592,118 @@ async function comenzarPartida(id_sala){
 }
 
 /**
- * Función para actualizar la casilla de un jugador en su turno
- * @param {string} id_partida
- * @param {string} jugador
- * @param {number[]} casilla Nuevas posiciones del jugador
+ *
+ * @param id_partida
+ * @param jugador
+ * @param nuevaCasilla
+ * @param nuevoQuesito
+ * @param finTurno
+ * @returns {Promise<number>}
  */
-function actualizarCasilla(id_partida, jugador, casilla){
+async function nuevaJugada(id_partida, jugador, nuevaCasilla, nuevoQuesito, finTurno){
     try{
         let value = salasJuego.get(id_partida);
         if(value !== undefined){
             if(value.turno === jugador){
-                let actualizado = false;
-                for(let i = 0; i<value.jugadores.length && !actualizado; i++){
-                    if(value.jugadores[i].nombre === jugador){
-                        value.jugadores[i].casilla = casilla;
-                        actualizado = true;
-                    }
+                let index = value.jugadores.findIndex(t => t.nombre===jugador);
+                if(index !== -1){
+                    return await value.mutex.runExclusive(()=>{
+                        let res = 1;
+                        if(nuevaCasilla !== "") {
+                            value.jugadores[index].casilla = nuevaCasilla;
+                        }
+                        const index2 = value.jugadores[index].quesitos.findIndex(t=> t === nuevoQuesito);
+                        if(nuevoQuesito !== "" && index2 ===-1) {
+                            value.jugadores[index].quesitos.push(nuevoQuesito);
+                            value.jugadores[index].nRestantes--;
+                        }
+                        console.log(value.jugadores[index]);
+                        if(finTurno && value.jugadores[index].nRestantes > 0) {
+                            let i = 1
+                            while (!value.jugadores[(index + i) % value.nJugadores].conectado) {
+                                i++;
+                            }
+                            value.turno = value.jugadores[(index + i) % value.nJugadores].nombre;
+                            res = 0;
+                        }
+                        return res;
+                    })
+                }else{
+                    return 2
                 }
-                return actualizado ? 0 : 1;
-            } else {
-                logger.error('Error al actualizar casilla, no es el turno del jugador');
-                return 2;
+            }else{
+                return 3;
             }
-        } else {
-            logger.error('Error al actualizar casilla, no existe la sala');
-            return 1;
+        }else{
+            return 4;
         }
-    } catch (e) {
-        logger.error('Error al actualizar casilla', e);
-        return 1;
+    }catch (e) {
+        logger.error('Error al actualizar jugada', e);
+        return 5;
     }
 }
 
 /**
- * Función para añadir el quesito conseguido a un jugador en su turno
- * @param id_partida Identificador de la partida
- * @param jugador Jugador que va a ser premiado con el quesito (hace referencia al índice del vector)
- * @param quesito Tipo de quesito que se le va a asignar al jugador en cuestión
+ *
+ * @param id_partida
+ * @param jugador
+ * @returns {undefined|integer}
  */
-function anyadirQuesito(id_partida, jugador, quesito){
+function obtenerQuesitosRestantes(id_partida, jugador){
     try{
-        let value = salasJuego.get(id_partida);
+        const value = salasJuego.get(id_partida);
         if(value !== undefined){
-            if(value.turno === jugador){
-                let actualizado = false;
-                for(let i = 0; i < value.jugadores.lenght && !actualizado; i++) {
-                    if(value.jugadores[i].nombre === jugador) {
-                        value.jugadores[i].quesitos.push(quesito);
-                        value.jugadores[i].nRestantes--;
-                        actualizado = true;
-                    }
-                }
-                if(actualizado === true){
-                    return 0;
-                }else{
-                    logger.error("Error al anyadir quesito, jugador no encontrado");
-                    return 3;
-                }
-            }else{
-                logger.error("Error al anyadir quesito, no es el turno del jugador");
-                return 2;
-            }
+            const data = value.jugadores.findIndex(t => t.nombre===jugador);
+            return value.jugadores[data].nRestantes;
         }else{
-            logger.error("Error al anyadir quesito, no existe la sala en juego");
-            return 1;
+            return undefined;
         }
-    }catch(e){
-        logger.error("Error al anyadir quesito", e);
-        return 1;
+    }catch (e) {
+        return undefined;
     }
 }
 
 /**
- * Cambia el turno al siguiente jugador
- * @param id_partida Identificador de la partida
- * @param jugador Jugador que solicita el paso de turno o al cual se le pasa el tiempo (hace referencia al índice del vector)
+ * Dado el id de un usuario y la partida,
+ * te devuelve la casilla en la que está.
+ *
+ * @param id_partida
+ * @param usuario
+ * @returns {undefined|integer}
  */
-function cambiarTurno(id_partida, jugador){
+function obtenerPosicion(id_partida, usuario){
     try{
-        let value = salasJuego.get(id_partida);
+        const value = salasJuego.get(id_partida);
         if(value !== undefined){
-            if(value.turno === jugador){
-                let actualizado = false;
-                for(let i = 0; i < value.jugadores.lenght && !actualizado; i++) {
-                    if(value.jugadores[i].nombre === jugador) {
-                        value.turno = value.jugadores[(i+1) % value.jugadores.lenght].nombre;
-                        actualizado = true;
-                    }
-                }
-                if(actualizado === true){
-                    return 0;
-                }else{
-                    logger.error("Error al cambiar turno, jugador no encontrado");
-                    return 3;
-                }
-            }else{
-                logger.error("Error al cambiar turno, no es el turno del jugador");
-                return 2;
-            }
+            console.log("obtenerPosicion: salasJuego.get devuelve sala");
+            const data = value.jugadores.findIndex(t => t.nombre===usuario);
+            console.log("obtenerPosicion: findIndex =", data);
+            return value.jugadores[data].casilla;
         }else{
-            logger.error("Error al cambiar turno, no existe la sala en juego");
-            return 1;
+            console.log("obtenerPosicion: salasJuego.get undefined");
+            return undefined;
         }
-    }catch(e){
-        logger.error("Error al cambiar turno", e);
-        return 1;
+    }catch (e) {
+        console.log("obtenerPosicion: Exception: ", e);
+        return undefined;
+    }
+}
+
+/**
+ *
+ * @param id_partida
+ * @returns {undefined|string}
+ */
+function obtenerTurno(id_partida){
+    try{
+        const value = salasJuego.get(id_partida);
+        if(value !== undefined){
+            return value.turno;
+        }else{
+            return undefined;
+        }
+    }catch (e) {
+        return undefined;
     }
 }
 
@@ -648,31 +711,65 @@ function cambiarTurno(id_partida, jugador){
  * Función para que un usuario abandone la partida
  * @param id_partida Identificador de la partida a borrar
  * @param jugador
+ * @returns {Promise<number>}
  */
-function abandonarPartida(id_partida, jugador){ //TODO Falta implementar que pueda volver el usuario
+async function abandonarPartida(id_partida, jugador){ //TODO Falta implementar que pueda volver el usuario
     try{
         let value = salasJuego.get(id_partida);
         if(value !== undefined){
             const data = value.jugadores.findIndex(t => t.nombre===jugador);
             if(data !== -1){ // Está en la lista
-                let ret = "0";
-                if(value.turno === jugador) { //Era su turno
-                    value.turno = value.jugadores[data+1%value.nJugadores].nombre;
-                    ret = value.turno;
-                }
-                value.jugadores.splice(data, 1); // Elimina al usuario
-                return " "+ret;
+                return await value.mutex.runExclusive(()=>{
+                    let ret = 1, i = 1;
+                    if(value.turno === jugador) { //Era su turno
+                        while(!value.jugadores[(data+i)%value.nJugadores].conectado){
+                            i++;
+                        }
+                        value.turno = value.jugadores[(data+i)%value.nJugadores].nombre;
+                        ret = 0;
+                    }
+                    //value.jugadores.splice(data, 1); // Elimina al usuario
+                    value.jugadores[data].conectado = false;
+                    if(value.jugadores.every(elem => !elem.conectado)){
+                        borrarPartida(id_partida);
+                    }
+                    return ret; //Si cambia de turno valdrá 0, si no 1.
+                });
             }else{//No está en la lista
                 logger.error('Error al abandonar partida, no está el jugador');
-                return "-2";
+                return 2;
             }
         } else {
             logger.error('Error al abandonar partida, no existe la sala');
-            return "-3";
+            return 3;
         }
     } catch (e) {
         logger.error('Error al abandonar partida', e);
-        return "-1";
+        return 4;
+    }
+}
+
+async function reconexionJugador(id_partida, usuario){
+    try{
+        let value = salasJuego.get(id_partida);
+        if(value === undefined){
+            logger.error('Error al reconectarse, no existe la sala.');
+            return 1;
+        }
+        const index = value.jugadores.findIndex(t => t.nombre===usuario);
+        if(index === -1){
+            logger.error('Error al reconectarse, no está el usuario.');
+            return 2;
+        }
+
+        return await value.mutex.runExclusive(()=>{
+            value.jugadores[index].conectado = true;
+            return 0;
+        })
+
+    }catch (e){
+        logger.error('Error al reconectarse un jugador. ', e);
+        return 3;
     }
 }
 
@@ -682,7 +779,8 @@ function abandonarPartida(id_partida, jugador){ //TODO Falta implementar que pue
  */
 function borrarPartida(id_partida){
     try{
-        salasJuego.del(id_partida);
+        const value = salasJuego.take(id_partida);
+        value.jugadores.forEach(j => usuariosEnSala.del(j.nombre));
     } catch (e) {
         logger.error('Error al borrarPartida',e);
     } finally {
@@ -694,22 +792,78 @@ function borrarPartida(id_partida){
     }
 }
 
+/**
+ * Recupera las siguientes casillas a poder visitar y una pregunta asociada a cada casilla
+ *
+ * @param id_partida
+ * @param jugador
+ * @param actual
+ * @param dado
+ * @returns {Promise<{res: null, code: number}|{res: [], code: number}>}
+ */
+async function getPosiblesJugadas(id_partida, jugador, actual, dado){
+    try {
+        let value = salasJuego.get(id_partida);
+        if (value !== undefined) {
+            const data = value.jugadores.findIndex(t => t.nombre === jugador);
+
+            if (data !== -1) { // Está en la lista
+                let movs = tablero.getPosiblesMovimientos(actual, dado, data);
+                if (movs === null) return {code: 3, res: null};
+
+                let resultado = [];
+                for(let i = 0; i < movs.length; i++) {
+                    if(movs[i].tipo !== "Dado") {
+                        let res = await Preguntas.recuperarPregunta(movs[i].categoria)
+                        if (res.code === 0) {
+                            resultado.push({
+                                casilla: movs[i],
+                                pregunta: res.preg
+                            });
+                        } else {
+                            return {code: 4, res: null}
+                        }
+                    } else {
+                        resultado.push({
+                            casilla: movs[i],
+                            pregunta: null
+                        });
+                    }
+                }
+
+                return {code: 0, res: resultado};
+
+            } else{
+                return {code: 2, res: null};
+            }
+        }
+    } catch (e) {
+        logger.error('Error al conseguirJugadas',e);
+        return {code: 1, res: null};
+    }
+}
+
 
 module.exports =
     {
         crear,
         obtenerJugadores,
+        estadoPartida,
         salaDelUsuario,
         crearSala,
         unirseSala,
         buscarPartida,
         abandonarSala,
         borrarSala,
+        liderDeSala,
         comenzarPartida,
-        actualizarCasilla,
-        anyadirQuesito,
-        cambiarTurno,
+        nuevaJugada,
+        obtenerQuesitosRestantes,
+        obtenerPosicion,
+        obtenerTurno,
         abandonarPartida,
+        reconexionJugador,
         borrarPartida,
+        getPosiblesJugadas,
         stop
     };

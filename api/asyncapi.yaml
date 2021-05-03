@@ -1,0 +1,159 @@
+asyncapi: 2.0.0
+info:
+  title: UniTrivia
+  version: 1.0.0
+  description: Sección de la api de UniTrivia para la
+              funcionalidad del juego.
+  license:
+    name: MIT License
+    url: https://opensource.org/licenses/mit-license.php
+servers:
+  production:
+    url: unitrivia.herokuapp.com
+    protocol: socket.io
+    description: Socket.io
+    variables:
+      port:
+        description: Secure connection (TLS) is available
+                      through port 443.
+        default: '80'
+channels:
+  /api/partida:
+    connection:
+      headers:
+        operacion:
+          required: true
+          type: string
+          enum:
+            - unirseSala
+            - crearSala
+            - buscarPartida
+          description: Operación a escoger al iniciar la conexión
+
+        jwt:
+          required: true
+          type: string
+          description: JWT del usuario
+
+        idSala:
+          type: string
+          description: Id de la sala a unirse y solo es necesario
+                        en caso de seleccionar la opción unirseSala
+        priv:
+          type: string
+          enum:
+            - true
+            - false
+          description: Necesario si se escoge la opcion crearSala
+                        y si vale true la sala a crear es privada
+                        y en caso contrario la sala será pública
+    disconnection:
+      description: Al desconectarse, se abandona de forma definitiva la
+                    sala y de forma temporal la partida.
+    subscribe:
+      message:
+        oneOf:
+        - $ref: '#/components/messages/jugadorSale'
+        - $ref: '#/components/messages/turno'
+        - $ref: '#/components/messages/cambioLider'
+        - $ref: '#/components/messages/abandonoSala'
+        - $ref: '#/components/messages/comienzoPartida'
+        - $ref: '#/components/messages/cargarJugadores'
+        - $ref: '#/components/messages/nuevoJugador'
+        - $ref: '#/components/messages/chat'
+    publish:
+      message:
+        oneOf:
+        - $ref: '#/components/messages/abandonarSala'
+        - $ref: '#/components/messages/comenzarPartida'   
+        - $ref: '#/components/messages/posiblesJugadas'
+        - $ref: '#/components/messages/actualizarJugada'
+        - $ref: '#/components/messages/abandonarPartida'   
+        - $ref: '#/components/messages/mensaje'
+
+
+components:
+  messages:
+    abandonarSala:
+      description: Función que gestiona el abandono de sala de un
+                    usuario y realiza las acciones corresponientes
+                    que notifica al resto de miembros de la sala.
+      payload:
+        type: function
+        description: Función de ack que se invoca con un 0 si Ok
+                      y 1 si error.
+    comenzarPartida:
+      description: Comienza la partida el usuario líder cuando se
+                    cumplen los requisitos necesarios para la sala
+                    y notifica a todos los jugadores.
+      payload:
+        type: function
+        description: Función de ack que se invoca con un objeto
+                      {string, string} donde el primer string
+                      indica si ha habido algún error o no y
+                      el segundo la informaciñon del error.
+    posiblesJugadas:
+      description: Dado un número de movimientos, calcula las posibles
+                    casillas a las que puede ir el jugador desde su
+                    posición actual.
+      payload:
+        dado:
+          type: integer
+          description: Resultado de una tirada de dado
+
+        ack:
+          type: function
+          description: Función de ack que se invoca con un array
+                        de enteros con las posibles casillas a visitar.
+
+    actualizarJugada:
+      description: Hace todas las acciones necesarios una vez el jugador
+                    termina su turno
+      payload:
+        input:
+          type: object
+          description: TODO
+
+        ack:
+          type: function
+          description: TODO
+
+    abandonarPartida:
+    description: Función que gestiona el abandono de una partida por
+                  parte de un jugador para permitir su posterior
+                  conexión e informa al resto de jugadores del abandono.
+      payload:
+        type: function
+        description: Función de ack que se invoca con un objeto
+                      {string, string} donde el primer string
+                      indica si ha habido algún error o no y
+                      el segundo la informaciñon del error.
+
+    mensaje:
+      payload:
+        type: string
+        description: Mensaje que un usuario quiere enviar por el chat
+
+    jugadorSale:
+    turno:
+    cambioLider:
+    abandonoSala:
+    comienzoPartida:
+    jugada:
+    cargarJugadores:
+    nuevoJugador:
+    finDelJuego:
+
+    chat:
+      payload:
+        type: object
+        description: Evento recibido cuando alguien envía un mensaje
+                      por el chat. Contiene quién lo envía y qué envía.
+        properties:
+          usuario:
+            type: string
+            description: Nombre de usuario que envía el mensaje
+          msg:
+            type: string
+            description: Mensaje de texto enviado por el usuario
+

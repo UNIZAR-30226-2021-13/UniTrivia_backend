@@ -7,7 +7,11 @@ const logger = require('./logger');
 class SocketioServer{
     constructor(expressServer, port) {
         this.server = http.createServer(expressServer);
-        this.io = new socketio.Server(this.server).of('/api/partida');
+        this.io = new socketio.Server(this.server,{
+            allowEIO3: true,
+            pingInterval: 5000,
+            pingTimeout: 25000
+        }).of('/api/partida');
         this.port = port
 
         this.configurar();
@@ -21,6 +25,7 @@ class SocketioServer{
 
                 if (obj) {
                     socket.username = obj['user'];
+                    socket.invitado = obj['guest'];
                     console.log("Conectado: " + socket.username);
                     next();
                 } else {
@@ -31,7 +36,6 @@ class SocketioServer{
             }
         });
 
-        //TODO: ojo con los async
         this.io.on('connection',  async (socket) => {
 
             const operacion = socket.request.headers['operacion'];
@@ -48,7 +52,20 @@ class SocketioServer{
             console.log("sala = " + sala);
 
             if(sala.sala !== ''){
-                //TODO Falta implementar que pueda volver el usuario
+                if(operacion !== 'reconexion') {
+                    socket.disconnect(true);
+                    return;
+                }
+
+                idSala = sala.sala;
+                if(await cache.reconexionJugador(idSala, usuario) !== 0){
+                    socket.disconnect(true);
+                    return
+                }
+                socket.join(idSala);
+                socket.to(idSala).emit('reconexionJugador', usuario); // no emite al propio socket
+                socket.emit('estadoPartida', cache.estadoPartida(idSala));
+
             } else {
                 if (operacion === 'crearSala') {
                     console.log("Entra crear sala")
@@ -117,7 +134,10 @@ class SocketioServer{
             });
 
             socket.on('comenzarPartida', async (fn) => {
-                //TODO solo el lider puede comenzar partida
+                if(cache.liderDeSala(idSala) !== usuario){
+                    fn({res: "error", info: "Sólo el lider puede comenzar la partida."})
+                    return;
+                }
                 const ok = await cache.comenzarPartida(idSala);
                 switch(ok['code']){
                     case 1: //Error desconocido
@@ -139,47 +159,103 @@ class SocketioServer{
                 }
             });
 
-            socket.on('posiblesJugadas', (dado) => {
-                //TODO explorar los posibles movimientos del usuario
-                //     que tiene el turno moviendo dado casillas y devolver
-                //      la lista de casillas que se pueden visitar.
-                console.log(dado)
+            socket.on('posiblesJugadas', async (dado, fn) => {
+                console.log("Entrada a posiblesJugadas. dado = ", dado);
+                const posicion = cache.obtenerPosicion(idSala, usuario);
+                console.log("posiblesJugadas.obtenerPosicion(idSala=", idSala,";usuario=",usuario,") = ", posicion);
+                const turno = cache.obtenerTurno(idSala);
+                console.log("posiblesJugadas.obtenerTurno(idSala=", idSala,") = ", turno);
+                if(turno === usuario) {
+                    if(posicion !== undefined){
+                        if(dado < 0 || dado > 6){
+                            fn({res: "err", info: "Dado incorrecto"});
+                            return ;
+                        }
+                        const ok = await cache.getPosiblesJugadas(idSala, usuario, posicion, dado);
+                        switch(ok['code']){
+                            case 0:
+                                fn({res: "ok", info: ok['res']})
+                                break;
+                            case 1:
+                                fn({res: "err", info: "Error desconocido."})
+                                break;
+                            case 2:
+                                fn({res: "err", info: "Jugador inválido."})
+                                break;
+                            case 3:
+                                fn({res: "err", info: "No se pudo obtener tu posición."})
+                                break;
+                            case 4:
+                                fn({res: "err", info: "Error al recuperar las preguntas."})
+                                break;
+                            default:
+                                fn({res: "err", info: "Error desconocido."})
+                                break;
+                        }
+                    }else{
+                        fn({res: "err", info: "No se pudo obtener tu posición."})
+                    }
+                }else{
+                    fn({res: "err", info: "No es el turno."})
+                }
             });
 
-            socket.on('actualizarJugada', (input) => {
-                //TODO actualizar cache (casilla + quesitos + cambiar turno)
-                //TODO broadcast a todos para informar
-                //TODO en caso de victoria broadcast de fin de partida para posterior mensaje a la API rest para actualizar
-                // monedas e historial de partidas y volver al menú principal y borrar partida de la cache
+            socket.on('actualizarJugada', async ({casilla, quesito,finTurno}, fn) => {
+                let ok = await cache.nuevaJugada(idSala, usuario, casilla, quesito, finTurno);
+                let resultado = {res: "error", info: "Error desconocido"}
+                switch (ok){
+                    case 0:
+                    case 1:
+                        socket.to(idSala).emit("jugada", {
+                            user: usuario,
+                            casilla: casilla,
+                            ques: quesito
+                        });
+                        if(ok == 0){
+                            socket.to(idSala).emit('turno', cache.obtenerTurno(idSala));
+                        }
+                        if(cache.obtenerQuesitosRestantes(idSala, usuario) === 0){
+                            console.log("Al menos entra aqui")
+                            this.io.in(idSala).emit("finDelJuego",usuario);
+                            cache.borrarPartida(idSala);
+                        }
+                        resultado = {res: "ok", info: ""};
+                        break;
+                    case 2:
+                        resultado = {res: "error", info: "Jugador no pertenece a la sala"};
+                        break;
+                    case 3:
+                        resultado = {res: "error", info: "No es el turno del jugador"};
+                        break;
+                    case 4:
+                        resultado = {res: "error", info: "No existe la sala"};
+                        break;
+                    case 5:
+                        resultado = {res: "error", info: "Error desconocido"};
+                        break;
+                }
+                fn(resultado);
 
-                console.log(input)
             });
 
             socket.on('abandonarPartida', async (fn) => {
-                //TODO actualizar cache
-                //TODO broadcast al resto de usuarios para indicar que un usuario ha abandonado la partida a frontend
-                // Si nuevo lider tambien informarlo en el mensaje
                 let res = await cache.abandonarPartida(idSala, usuario);
                 switch (res){
-                    case '-1':
-                        fn({res: "error", info:"Desconocido"});
-                        break;
-                    case '-2':
-                        fn({res: "error", info:"No se pertence a la sala"});
-                        break;
-                    case '-3':
-                        fn({res: "error", info:"No existe la sala"});
-                        break;
-                    default:
-                        console.log(res);
-                        res = res.substring(1);
-                        console.log(res);
+                    case 0:
+                        socket.to(idSala).emit('turno', cache.obtenerTurno(idSala));
+                    case 1:
                         socket.to(idSala).emit('jugadorSale', usuario);
-                        if(res !== '0'){
-                            socket.to(idSala).emit('turno', res);
-                        }
                         socket.leave(idSala);
                         fn({res: "ok", info:""});
+                        break;
+                    case 2:
+                        fn({res: "error", info:"No se pertence a la sala"});
+                        break;
+                    case 3:
+                        fn({res: "error", info:"No existe la sala"});
+                        break;
+                    case 4:
+                        fn({res: "error", info:"Desconocido"});
                         break;
                 }
             });
@@ -199,9 +275,12 @@ class SocketioServer{
                     } else {
                         socket.to(idSala).emit('abandonoSala', usuario);
                     }
-                } else if(false){
-                    //TODO poner lo mismo que en socket.on('abandonarPartida')
-                    // o mandar un mensaje para poner un timeout de reconexion y si se cumple echarlo
+                } else if((res = await cache.abandonarPartida(idSala, usuario)) <= 1){
+                    if(res === 0){
+                        socket.to(idSala).emit('turno', cache.obtenerTurno(idSala));
+                    }
+                    socket.to(idSala).emit('jugadorSale', usuario);
+                    socket.leave(idSala);
                 } else {
                     //socket.disconnect(true);
                 }

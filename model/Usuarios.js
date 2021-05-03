@@ -283,7 +283,7 @@ async function getPerfil(token) {
         } else {
             return {code: 2, data: null};
         }
-        //}else if(obj && !obj['guest']){
+    //}else if(obj && !obj['guest']){
     }else{
         return {code: 1, data: null};
     }
@@ -299,7 +299,7 @@ async function deletePerfil(token){
         }else{
             return 2;
         }
-        //}else if(obj && !obj['guest']){
+    //}else if(obj && !obj['guest']){
     }else{
         return 1;
     }
@@ -368,5 +368,5 @@ async function recoverQuestion(username) {
 }
 
 module.exports = {registrar, logear, invitado, modificar_ficha, modificar_banner,
-    modificar_avatar, modificar_pass,getPerfil, deletePerfil,
+                    modificar_avatar, modificar_pass,getPerfil, deletePerfil,
                     validar_respuesta, recoverQuestion}

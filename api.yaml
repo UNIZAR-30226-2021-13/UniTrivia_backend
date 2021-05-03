@@ -1,16 +1,18 @@
 openapi: 3.0.3
 info:
+  title: UniTrivia
   description: API to the game of UniTrivia
+  version: 1.0.0
   license:
     name: MIT License
     url: https://opensource.org/licenses/mit-license.php
-  title: UniTrivia
-  version: 1.0.0
 servers:
-- url: http://localhost:3000/api
+  - url: http://localhost:3000/api
 paths:
   /login:
     get:
+      tags:
+        - Usuario
       description: |
         Se le pasa como parámetros el nombre de usuario y la contraseña en texto plano.
 
@@ -18,38 +20,34 @@ paths:
         relacionadas con el usuario y un error en caso de no poder identificarlo.
       operationId: login
       parameters:
-      - explode: false
-        in: header
-        name: username
-        required: true
-        schema:
-          type: string
-        style: simple
-      - explode: false
-        in: header
-        name: password
-        required: true
-        schema:
-          type: string
-        style: simple
+        - name: username
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: password
+          in: header
+          required: true
+          schema:
+            type: string
       responses:
-        "200":
+        '200':
+          description: Login realizado exitosamente
           content:
             application/json:
               schema:
                 type: string
-          description: Login realizado exitosamente
         default:
+          description: Error en el login
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: Error en el login
-      tags:
-      - Usuario
-      x-eov-operation-handler: controllers/UsuarioController
+
   /register:
     post:
+      tags:
+        - Usuario
       description: |
         Se le pasa comos parámetros el nombre de usuario, la contraseña en texto plano, el email
         la pregunta de seguridad y la respuesta a dicha presgunta.
@@ -57,157 +55,135 @@ paths:
         Devuelve un mensaje de confirmación de caso de poder crear el usuario y un error en caso de no poder crearlo.
       operationId: register
       parameters:
-      - explode: false
-        in: header
-        name: username
-        required: true
-        schema:
-          type: string
-        style: simple
-      - explode: false
-        in: header
-        name: password
-        required: true
-        schema:
-          type: string
-        style: simple
-      - explode: false
-        in: header
-        name: email
-        required: true
-        schema:
-          type: string
-        style: simple
-      - explode: false
-        in: header
-        name: preg
-        required: true
-        schema:
-          type: string
-        style: simple
-      - explode: false
-        in: header
-        name: res
-        required: true
-        schema:
-          type: string
-        style: simple
+        - name: username
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: password
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: email
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: preg
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: res
+          in: header
+          required: true
+          schema:
+            type: string
       responses:
-        "200":
+        '200':
+          description: Usuario creado exitosamente
           content:
             application/json:
               schema:
                 type: string
-          description: Usuario creado exitosamente
         default:
+          description: Error en el registro
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: Error en el registro
-      tags:
-      - Usuario
-      x-eov-operation-handler: controllers/UsuarioController
+
   /profile/modify/password:
     post:
+      tags:
+        - Usuario
       description: |
         Se le pasa comos parámetros el nombre de usuario, la contraseña nueva en texto plano
         y la contraseña vieja o actual en texto plano
 
         Devuelve un mensaje de confirmación de caso de poder modificar la contraseña y
         un error en caso de error.
+      security:
+        - jwt: [ ]
       operationId: modifyPassword
       parameters:
-      - explode: false
-        in: header
-        name: jwt
-        required: true
-        schema:
-          type: string
-        style: simple
-      - explode: false
-        in: header
-        name: new-password
-        required: true
-        schema:
-          type: string
-        style: simple
-      - explode: false
-        in: header
-        name: old-password
-        required: true
-        schema:
-          type: string
-        style: simple
+        - name: jwt
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: new-password
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: old-password
+          in: header
+          required: true
+          schema:
+            type: string
       responses:
-        "200":
+        '200':
+          description: Contraseña cambiada exitosamente
           content:
             application/json:
               schema:
                 type: string
-          description: Contraseña cambiada exitosamente
         default:
+          description: Error al cambiar contraseña
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: Error al cambiar contraseña
-      security:
-      - jwt: []
-      tags:
-      - Usuario
-      x-eov-operation-handler: controllers/UsuarioController
+
   /login/recover/password:
     post:
+      tags:
+        - Usuario
       description: |
         Se le pasa comos parámetros el nombre de usuario, la respuesta a la pregunta de seguridad y
         la contraseña nueva en texto plano.
 
         Devuelve un mensaje de confirmación de caso de que la respuesta coincida con la proporcionda y se
         ha podido poder modificar la contraseña. Devuelve error en caso contrario.
+
+      security:
+        - jwt: [ ]
       operationId: recoverPassword
       parameters:
-      - explode: false
-        in: header
-        name: jwt
-        required: true
-        schema:
-          type: string
-        style: simple
-      - explode: false
-        in: header
-        name: res
-        required: true
-        schema:
-          type: string
-        style: simple
-      - explode: false
-        in: header
-        name: new-password
-        required: true
-        schema:
-          type: string
-        style: simple
+        - name: jwt
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: res
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: new-password
+          in: header
+          required: true
+          schema:
+            type: string
       responses:
-        "200":
+        '200':
+          description: Contraseña cambiada exitosamente
           content:
             application/json:
               schema:
                 type: string
-          description: Contraseña cambiada exitosamente
         default:
+          description: Error al cambiar contraseña
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: Error al cambiar contraseña
-      security:
-      - jwt: []
-      tags:
-      - Usuario
-      x-eov-operation-handler: controllers/UsuarioController
   /logAsGuest:
     get:
+      tags:
+        - Usuario
       description: |
         No es necesario el paso de ningún parámetro.
 
@@ -216,79 +192,71 @@ paths:
       operationId: logAsGuest
       responses:
         default:
-          content:
-            application/json:
-              schema:
-                type: string
           description: Se le devuelve el identificador asignado
-      tags:
-      - Usuario
-      x-eov-operation-handler: controllers/UsuarioController
-  /profile:
-    delete:
-      description: |
-        Elimina la información del usuario de la base de datos
-      operationId: profileDELETE
-      parameters:
-      - explode: false
-        in: header
-        name: jwt
-        required: true
-        schema:
-          type: string
-        style: simple
-      responses:
-        "200":
           content:
             application/json:
               schema:
                 type: string
-          description: Respuesta de exito
-        default:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-          description: Error al eliminar el usuario
-      security:
-      - jwt: []
-      tags:
-      - Usuario
-      x-eov-operation-handler: controllers/UsuarioController
+  /profile:
     get:
+      tags:
+        - Usuario
       description: |
         Obtiene toda la información del usuario: nombre de usuario, email, pregunta de seguridad,
           respuesta de seguridad, lista de objectos comprados, estadísticas del jugador, opciones
           de personalización y cantidad de monedas.
-      operationId: profileGET
+      security:
+        - jwt: [ ]
       parameters:
-      - explode: false
-        in: header
-        name: jwt
-        required: true
-        schema:
-          type: string
-        style: simple
+        - name: jwt
+          in: header
+          required: true
+          schema:
+            type: string
       responses:
-        "200":
+        '200':
+          description: Objeto con toda la información del usuario.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Usuario'
-          description: Objeto con toda la información del usuario.
         default:
+          description: Error al obtener el usuario
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: Error al obtener el usuario
-      security:
-      - jwt: []
+    delete:
       tags:
-      - Usuario
-      x-eov-operation-handler: controllers/UsuarioController
+        - Usuario
+      description: |
+        Elimina la información del usuario de la base de datos
+      security:
+        - jwt: [ ]
+      parameters:
+        - name: jwt
+          in: header
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Respuesta de exito
+          content:
+            application/json:
+              schema:
+                type: string
+        default:
+          description: Error al eliminar el usuario
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
   /profile/modify/avatar:
     post:
+      tags:
+        - Usuario
       description: |
         Se le pasa comos parámetros el identificador que se ha asociado a dicho usuario en el login y
         el id del nuevo avatar que quiere usar el usuario en cuestión, este útimo debe pertenecer a su lista de comprados.
@@ -296,41 +264,37 @@ paths:
         Devuelve un mensaje de confirmación en caso de poder modificar el avatar. Devuelve un mensaje de error
         en caso contrario.
       operationId: modifyAvatar
+      security:
+        - jwt: []
       parameters:
-      - explode: false
-        in: header
-        name: jwt
-        required: true
-        schema:
-          type: string
-        style: simple
-      - explode: false
-        in: header
-        name: id-avatar
-        required: true
-        schema:
-          type: integer
-        style: simple
+        - name: jwt
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: id-avatar
+          in: header
+          required: true
+          schema:
+            type: integer
       responses:
-        "200":
+        '200':
+          description: Avatar cambiado con éxito
           content:
             application/json:
               schema:
                 type: string
-          description: Avatar cambiado con éxito
         default:
+          description: Error al cambiar avatar
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: Error al cambiar avatar
-      security:
-      - jwt: []
-      tags:
-      - Usuario
-      x-eov-operation-handler: controllers/UsuarioController
+
   /profile/modify/formFicha:
     post:
+      tags:
+        - Usuario
       description: |
         Se le pasa comos parámetros el identificador que se ha asociado a dicho usuario en el login y
         el id de la nueva forma de ficha que quiere usar el usuario en cuestión, este útimo debe pertenecer a su lista de comprados.
@@ -338,41 +302,37 @@ paths:
         Devuelve un mensaje de confirmación en caso de poder modificar la forma de ficha. Devuelve un mensaje de error
         en caso contrario.
       operationId: modifyFormFicha
+      security:
+        - jwt: [ ]
       parameters:
-      - explode: false
-        in: header
-        name: jwt
-        required: true
-        schema:
-          type: string
-        style: simple
-      - explode: false
-        in: header
-        name: id-form-ficha
-        required: true
-        schema:
-          type: integer
-        style: simple
+        - name: jwt
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: id-form-ficha
+          in: header
+          required: true
+          schema:
+            type: integer
       responses:
-        "200":
+        '200':
+          description: Forma de ficha cambiada con éxito
           content:
             application/json:
               schema:
                 type: string
-          description: Forma de ficha cambiada con éxito
         default:
+          description: Error al cambiar forma de ficha
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: Error al cambiar forma de ficha
-      security:
-      - jwt: []
-      tags:
-      - Usuario
-      x-eov-operation-handler: controllers/UsuarioController
+
   /profile/modify/banner:
     post:
+      tags:
+        - Usuario
       description: |
         Se le pasa comos parámetros el identificador que se ha asociado a dicho usuario en el login y
         el id del nuevo banner que quiere usar el usuario en cuestión, este útimo debe pertenecer a su lista de comprados.
@@ -380,39 +340,32 @@ paths:
         Devuelve un mensaje de confirmación en caso de poder modificar el banner. Devuelve un mensaje de error
         en caso contrario.
       operationId: modifyBanner
+      security:
+        - jwt: [ ]
       parameters:
-      - explode: false
-        in: header
-        name: jwt
-        required: true
-        schema:
-          type: string
-        style: simple
-      - explode: false
-        in: header
-        name: id-banner
-        required: true
-        schema:
-          type: integer
-        style: simple
+        - name: jwt
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: id-banner
+          in: header
+          required: true
+          schema:
+            type: integer
       responses:
-        "200":
+        '200':
+          description: Banner cambiado con éxito
           content:
             application/json:
               schema:
                 type: string
-          description: Banner cambiado con éxito
         default:
+          description: Error al cambiar banner
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: Error al cambiar banner
-      security:
-      - jwt: []
-      tags:
-      - Usuario
-      x-eov-operation-handler: controllers/UsuarioController
   /partida/reconexion:
     get:
       description: |
@@ -423,21 +376,18 @@ paths:
         devuelve un error.
       operationId: reconexion
       parameters:
-      - explode: false
-        in: header
-        name: jwt
-        required: true
-        schema:
-          type: string
-        style: simple
+        - in: header
+          name: jwt
+          required: true
+          schema:
+            type: string
       responses:
         "200":
           content:
             text/plain:
               schema:
                 type: string
-          description: Devuelve el identificador de la sala en la que está o un string
-            vacío.
+          description: Devuelve el identificador de la sala en la que está o un string vacío.
         default:
           content:
             application/json:
@@ -445,10 +395,10 @@ paths:
                 $ref: '#/components/schemas/Error'
           description: Error al encontrar si el jugador está en una partida
       security:
-      - jwt: []
+        - jwt: []
       tags:
-      - Partida
-      x-eov-operation-handler: controllers/PartidaController
+        - Partida
+
   /tienda/catalogo:
     get:
       description: |
@@ -457,17 +407,15 @@ paths:
         Devuelve una lista con los nombre de las imágenes del tipo correspondiente.
       operationId: catalogo
       parameters:
-      - explode: false
-        in: header
-        name: tipo
-        required: true
-        schema:
-          enum:
-          - avatar
-          - formFicha
-          - banner
-          type: string
-        style: simple
+        - in: header
+          name: tipo
+          required: true
+          schema:
+            type: string
+            enum:
+              - avatar
+              - formFicha
+              - banner
       responses:
         "200":
           content:
@@ -476,6 +424,7 @@ paths:
                 items:
                   type: string
                 type: array
+
           description: Devuelve el array con los nombre de las imágenes del tipo correspondiente
         default:
           content:
@@ -484,8 +433,8 @@ paths:
                 $ref: '#/components/schemas/Error'
           description: Error al recuperar imágenes
       tags:
-      - Tienda
-      x-eov-operation-handler: controllers/TiendaController
+        - Tienda
+
   /tienda/comprar:
     post:
       description: |
@@ -495,20 +444,16 @@ paths:
         imágenes disponibles.
       operationId: comprar
       parameters:
-      - explode: false
-        in: header
-        name: nombre
-        required: true
-        schema:
-          type: string
-        style: simple
-      - explode: false
-        in: header
-        name: jwt
-        required: true
-        schema:
-          type: string
-        style: simple
+        - in: header
+          name: nombre
+          required: true
+          schema:
+            type: string
+        - in: header
+          name: jwt
+          required: true
+          schema:
+            type: string
       responses:
         "200":
           content:
@@ -521,13 +466,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: Error al actualizar la base de datos o no tiene dinero suficiente
-            o ya está comprado
+          description: Error al actualizar la base de datos o no tiene dinero suficiente o ya está comprado
       security:
-      - jwt: []
+        - jwt: []
       tags:
-      - Tienda
-      x-eov-operation-handler: controllers/TiendaController
+        - Tienda
   /tienda/insertarMonedas:
     post:
       description: |
@@ -537,20 +480,16 @@ paths:
         Si da error se informa.
       operationId: insertarMonedas
       parameters:
-      - explode: false
-        in: header
-        name: cantidad
-        required: true
-        schema:
-          type: integer
-        style: simple
-      - explode: false
-        in: header
-        name: jwt
-        required: true
-        schema:
-          type: string
-        style: simple
+        - in: header
+          name: cantidad
+          required: true
+          schema:
+            type: integer
+        - in: header
+          name: jwt
+          required: true
+          schema:
+            type: string
       responses:
         "200":
           content:
@@ -566,39 +505,25 @@ paths:
           description: |
             Error al actualizar la base de datos o no es un jwt válido.
       security:
-      - jwt: []
+        - jwt: []
       tags:
-      - Tienda
-      - Usuario
-      x-eov-operation-handler: controllers/TiendaController
+        - Tienda
+        - Usuario
 components:
   schemas:
     Error:
+      type: object
+      required:
+        - code
+        - message
       properties:
         code:
-          format: int32
           type: integer
+          format: int32
         message:
           type: string
-      required:
-      - code
-      - message
-      type: object
     Usuario:
-      example:
-        preg: preg
-        res: res
-        coins: 0
-        nGanadas: 1
-        ficha: ficha
-        banner: banner
-        comprados:
-        - comprados
-        - comprados
-        avatar: avatar
-        nJugadas: 6
-        email: email
-        username: username
+      type: object
       properties:
         username:
           description: Nombre de usuario
@@ -631,14 +556,13 @@ components:
           description: El ObjectID de la forma de la ficha del usuario
           type: string
         comprados:
-          description: El array de ObjectID con los objetos comproados por el usuario
-            del usuario
+          description: El array de ObjectID con los objetos comproados por el usuario del usuario
+          type: array
           items:
             type: string
-          type: array
-      type: object
+
   securitySchemes:
-    jwt:
+    jwt: # arbitrary name for the security scheme
+      type: apiKey
       in: header
       name: jwt
-      type: apiKey

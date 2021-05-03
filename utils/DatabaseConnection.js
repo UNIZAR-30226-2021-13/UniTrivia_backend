@@ -8,6 +8,7 @@ async function iniciar(url = "mongodb://localhost:27017", nombreBD = "UniTrivia"
     cliente = new MongoClient(url,{
         poolSize: 10,
         tls: true,
+        tlsAllowInvalidCertificates: true,
         tlsCertificateKeyFile: config.PATH_MONGO_KEY});
     cliente = await cliente.connect();
     bd = cliente.db(nombreBD);
@@ -24,4 +25,6 @@ function getBD(){
     return bd;
 }
 
-module.exports = {iniciar, terminar, getBD};
+const Int = require('mongodb').Int32;
+
+module.exports = {iniciar, terminar, getBD, Int};

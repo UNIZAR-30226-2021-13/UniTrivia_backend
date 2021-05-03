@@ -17,24 +17,38 @@
     <button onclick="crearSala()" >Crear sala</button>
     <button onclick="unirseSala()" >Unirse sala</button>
     <button onclick="buscarSala()" >Buscar sala</button>
+    <button onclick="reconexion()" >Reconexión</button>
     <button onclick="abandonarSala()" >Abandonar sala</button>
+  </div>
+  <div>
     <button onclick="comenzarPartida()" >Comenzar partida</button>
+    <button onclick="posiblesJugadas()" >Posibles Jugadas</button>
+
+    <label for="sigcasilla">Sig Casilla</label><input type="text" id="sigcasilla"/>
+    <label for="tipo">Tira otra vez?</label><input type="text" id="tipo"/>
+    <label for="acierta">Obtendrá un quesito?</label><input type="text" id="acierta"/>
+    <button onclick="actualizarJugada()">Actualizar Jugada </button>
+    <button onclick="abandonarPartida()">Abandonar Partida </button>
     <button onclick="terminar()">Cerrar conexion </button>
   </div>
-  <!--
+
     <script src="http://localhost:3000/socket.io/socket.io.js"> </script>
-      -->
-      <script src="http://unitrivia.herokuapp.com/socket.io/socket.io.js"> </script>
+  <!--
+  <script src="http://unitests.herokuapp.com/socket.io/socket.io.js"> </script>
+  -->
     <script>
       let token;
       let conn = undefined;
       let sala = undefined;
+      let casilla = 777;
+      let dado = 0;
+      let quesitos = [];
 
       let xhr = new XMLHttpRequest(),
               method = 'GET',
               //partida = 'http://localhost:3000/api/partida',
-              partida = 'http://unitrivia.herokuapp.com/api/partida',
-              url = 'http://unitrivia.herokuapp.com/api/login';
+              partida = 'http://unitests.herokuapp.com/api/partida',
+              url = 'http://unitests.herokuapp.com/api/login';
               //url = 'http://localhost:3000/api/login';
 
       function iniciarSesion() {
@@ -85,9 +99,40 @@
           console.log("Mensaje: " + msg + " de " + user);
         })
 
+        conn.on('estadoPartida', (info) => {
+          console.log(info);
+        })
+
+        conn.on('jugadorSale', (usuario) => {
+          console.log("Abandona partida: " + usuario);
+        })
+
+        conn.on('finDelJuego', (usuario) => {
+          console.log("Fin del juego, gana: " + usuario);
+        })
+
+        conn.on('jugada', ({user, casilla, ques}) => {
+          if(ques !== "") {
+            console.log("Jugada de " + user + " que pasa a la casilla " + casilla +
+                    " y obtiene el quesito " + ques);
+          }else{
+            console.log("Jugada de " + user + " que pasa a la casilla " + casilla);
+          }
+        })
+
         conn.on('disconnect', (reason)=>{
           console.log('Desconectado: '+ reason);
         })
+      }
+
+      function randString(length) {
+        let result = '';
+        let characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-';
+        let charactersLength = characters.length;
+        for (let i = 0; i < length; i++) {
+          result += characters.charAt(Math.floor(Math.random() * charactersLength));
+        }
+        return result;
       }
 
       function crearSala(){
@@ -126,6 +171,17 @@
         config(conn);
       }
 
+      function reconexion(){
+        if(conn !== undefined){return;}
+        conn = io(partida,{
+          extraHeaders:{
+            jwt: token,
+            operacion: "reconexion"
+          }
+        });
+        config(conn);
+      }
+
       function abandonarSala(){
         conn.emit("abandonarSala", (code)=>{
           console.log("Al abandonar sala: " + code.toString());
@@ -141,6 +197,32 @@
       function comenzarPartida(){
         conn.emit("comenzarPartida", (res)=>{
           console.log("Al comenzar partida: " + res.res + " " + res.info);
+        });
+      }
+
+      function posiblesJugadas(){
+        dado = Math.round(1+Math.random()*5);
+        conn.emit("posiblesJugadas", dado, (res)=>{
+          console.log("Posibles jugadas con dado: " + dado.toString());
+          console.log(res['res']);
+          console.log(res['info']);
+        });
+      }
+
+      function actualizarJugada(){
+        const nuevoQuesito = randString(8)
+        if(document.getElementById('acierta').value === "true") quesitos.push(nuevoQuesito);
+        conn.emit("actualizarJugada", {casilla: parseInt(document.getElementById('sigcasilla').value),
+          quesito: nuevoQuesito,
+          finTurno: document.getElementById('tipo').value !== "true" ,
+        }, (res)=>{
+          console.log("Jugada actualizada: " + res['res'] + " " + res['info']);
+        });
+      }
+
+      function abandonarPartida(){
+        conn.emit("abandonarSala", (res)=>{
+          console.log("Al abandonar partida: " + res["res"] + " " + res['info']);
         });
       }
   </script>
