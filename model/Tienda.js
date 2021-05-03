@@ -1,7 +1,6 @@
 const db = require('../utils/DatabaseConnection.js');
 const jwt = require('../utils/JWT.js');
 const logger = require("../logger");
-const {Int32} = require('mongodb');
 
 /**
  * Recupera todas las imagenes del tipo especificado de la base de datos
@@ -46,7 +45,7 @@ async function recuperarCatalogo(tipo){
 async function comprarItem(token, nombre){
     try {
         const imagenes = db.getBD().collection("imagenes");
-        const usuarios = db.getBD().collection("imagenes");
+        const usuarios = db.getBD().collection("usuarios");
         const obj = jwt.validarToken(token);
         if(obj) {
             const exists = await imagenes.findOne({_id: nombre});
@@ -92,16 +91,15 @@ async function comprarItem(token, nombre){
 
 async function insertarMonedas(cantidad, token){
     try{
-        const usuarios = db.getBD().collection("imagenes");
+        const usuarios = db.getBD().collection("usuarios");
         const obj = jwt.validarToken(token);
         if(cantidad <= 0){
             return 3;
         }
         if(obj) {
             const result = await usuarios.updateOne(
-                {_id: obj.user},
-                {$inc: {cns: Int32(cantidad)}},
-                //{ bypassDocumentValidation: true}
+                { _id: obj.user},
+                {$inc: {cns: cantidad}}
             ); //$inc crea el campo si no existe y le pone de valor <cantidad>
 
             if(result['modifiedCount'] === 1){
