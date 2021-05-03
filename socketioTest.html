@@ -75,6 +75,10 @@
           console.log("Antiguo lider: " + antiguo + " Nuevo: " + nuevo);
         })
 
+        conn.on('reconexionJugador', (jugador) => {
+          console.log("Vuelve el jugador: " + jugador);
+        })
+
         conn.on('abandonoSala', (user) => {
           console.log("Abandona sala: " + user);
         })
@@ -210,8 +214,11 @@
       }
 
       function actualizarJugada(){
-        const nuevoQuesito = randString(8)
-        if(document.getElementById('acierta').value === "true") quesitos.push(nuevoQuesito);
+        let nuevoQuesito = ""
+        if(document.getElementById('acierta').value === "true"){
+          nuevoQuesito = randString(8);
+          quesitos.push(nuevoQuesito);
+        }
         conn.emit("actualizarJugada", {casilla: parseInt(document.getElementById('sigcasilla').value),
           quesito: nuevoQuesito,
           finTurno: document.getElementById('tipo').value !== "true" ,
