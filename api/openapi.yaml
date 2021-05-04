@@ -474,7 +474,12 @@ paths:
             application/json:
               schema:
                 items:
-                  type: string
+                  type: object
+                  properties:
+                    nombre:
+                      type: string
+                    precio:
+                      type: number
                 type: array
           description: Devuelve el array con los nombre de las imágenes del tipo correspondiente
         default:
