@@ -15,15 +15,13 @@ async function recuperarCatalogo(tipo){
 
     try {
         const imagenes = db.getBD().collection("imagenes");
-        console.log(tipo)
         const imgs = await imagenes.find({tipo: tipo}).toArray();
-        console.log(imgs)
         if (imgs.length === 0) {
             logger.error("Error recuperarCatalogo: no hay imagenes del tipo.");
             code = 1;
             id = "Error recuperarCatalogo: no hay imagenes del tipo.";
         } else {
-            for(let i = 0; imgs.length ; i++){
+            for(let i = 0; i < imgs.length ; i++){
                 array.push({nombre: imgs[i]._id, precio: imgs[i].precio});
             }
             code = 0;
@@ -70,7 +68,7 @@ async function comprarItem(token, nombre){
             }
 
             const result = await usuarios.updateOne({_id: obj.user},
-                {$push: {rfs: nombre}}, {$set: {cns: user['cns'] - exists['precio'] }});
+                {$push: {rfs: nombre}}, {$inc: {cns: (- exists['precio']) }});
             if(result['modifiedCount'] === 1){
                 return 0;
 
