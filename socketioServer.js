@@ -215,7 +215,7 @@ class SocketioServer{
                             ques: quesito
                         });
                         if(ok == 0){
-                            socket.to(idSala).emit('turno', cache.obtenerTurno(idSala));
+                            this.io.in(idSala).emit('turno', cache.obtenerTurno(idSala));
                         }
                         if(cache.obtenerQuesitosRestantes(idSala, usuario) === 0){
                             console.log("Al menos entra aqui")
@@ -245,9 +245,11 @@ class SocketioServer{
                 let res = await cache.abandonarPartida(idSala, usuario);
                 switch (res){
                     case 0:
-                        socket.to(idSala).emit('turno', cache.obtenerTurno(idSala));
                     case 1:
                         socket.to(idSala).emit('jugadorSale', usuario);
+                        if(res === 0){
+                            socket.to(idSala).emit('turno', cache.obtenerTurno(idSala));
+                        }
                         socket.leave(idSala);
                         fn({res: "ok", info:""});
                         break;
@@ -279,10 +281,10 @@ class SocketioServer{
                         socket.to(idSala).emit('abandonoSala', usuario);
                     }
                 } else if((res = await cache.abandonarPartida(idSala, usuario)) <= 1){
+                    socket.to(idSala).emit('jugadorSale', usuario);
                     if(res === 0){
                         socket.to(idSala).emit('turno', cache.obtenerTurno(idSala));
                     }
-                    socket.to(idSala).emit('jugadorSale', usuario);
                     socket.leave(idSala);
                 } else {
                     //socket.disconnect(true);

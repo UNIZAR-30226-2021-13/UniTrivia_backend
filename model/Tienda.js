@@ -22,7 +22,7 @@ async function recuperarCatalogo(tipo){
             id = "Error recuperarCatalogo: no hay imagenes del tipo.";
         } else {
             for(let i = 0; imgs.length ; i++){
-                array.push(imgs[i].data);
+                array.push({nombre: imgs[i]._id, precio: imgs[i].precio});
             }
             code = 0;
         }
