@@ -49,6 +49,7 @@ async function comprarItem(token, nombre){
         const obj = jwt.validarToken(token);
         if(obj) {
             const exists = await imagenes.findOne({_id: nombre});
+            console.log(exists);
             if(!exists) {
                 logger.error("Error comprarItem: ítem no existe");
                 return 3;
@@ -56,6 +57,7 @@ async function comprarItem(token, nombre){
 
             const precio = exists['precio'];
             const user = await usuarios.findOne({_id: obj.user});
+            console.log(user);
             if(!user){
                 logger.error("Error comprarItem: usuario no existe");
                 return 4;
@@ -64,7 +66,11 @@ async function comprarItem(token, nombre){
             if(exists['precio'] > user['cns']){
                 logger.error("Error comprarItem: no tiene suficiente dinero");
                 return 5;
+            }
 
+            if(user['rfs'].includes(nombre)){
+                logger.error("Error comprarItem: ítem ya comprado");
+                return 6;
             }
 
             const result = await usuarios.updateOne({_id: obj.user},
