@@ -16,7 +16,7 @@ async function recuperarCatalogo(tipo){
     try {
         const imagenes = db.getBD().collection("imagenes");
         const imgs = await imagenes.find({tipo: tipo}).toArray();
-        if (!imgs) {
+        if (imgs.length === 0) {
             logger.error("Error recuperarCatalogo: no hay imagenes del tipo.");
             code = 1;
             id = "Error recuperarCatalogo: no hay imagenes del tipo.";
@@ -55,7 +55,7 @@ async function comprarItem(token, nombre){
             }
 
             const precio = exists['precio'];
-            const user = await imagenes.findOne({_id: obj.user});
+            const user = await usuarios.findOne({_id: obj.user});
             if(!user){
                 logger.error("Error comprarItem: usuario no existe");
                 return 4;
