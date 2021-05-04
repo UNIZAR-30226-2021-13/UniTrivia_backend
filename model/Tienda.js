@@ -63,7 +63,7 @@ async function comprarItem(token, nombre){
                 return 4;
             }
 
-            if(exists['precio'] > user['cns']){
+            if(precio > user['cns']){
                 logger.error("Error comprarItem: no tiene suficiente dinero");
                 return 5;
             }
@@ -74,7 +74,7 @@ async function comprarItem(token, nombre){
             }
 
             const result = await usuarios.updateOne({_id: obj.user},
-                {$push: {rfs: nombre}}, {$inc: {cns: (- exists['precio']) }});
+                {$push: {rfs: nombre}}, {$inc: {cns: (-precio) }});
             if(result['modifiedCount'] === 1){
                 return 0;
 
