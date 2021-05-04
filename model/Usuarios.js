@@ -43,7 +43,11 @@ async function registrar(username, password, email, pregunta, respuesta){
                 mail: email,
                 hash: hash,
                 preg: pregunta,
-                res: respuesta
+                res: respuesta,
+                avtr: "avatar0",
+                bnr: "banner0",
+                fich: "ficha0",
+                rfs: ["avatar0","banner0","ficha0"]
             };
             let res = await usuarios.insertOne(usuario);
             if(res['insertedCount'] === 1){
@@ -273,10 +277,10 @@ async function getPerfil(token) {
                 cns: 0,
                 nj: 0,
                 ng: 0,
-                avtr: new ObjectID.createFromHexString("606b2b15adc9cc1846fe1500"), //TODO: HAY QUE CAMBIAR EL VALOR POR UN DEFAULT
-                bnr: new ObjectID.createFromHexString("606b2b15adc9cc1846fe1500"), //TODO: HAY QUE CAMBIAR EL VALOR POR UN DEFAULT
-                fich: new ObjectID.createFromHexString("606b2b15adc9cc1846fe1500"), //TODO: HAY QUE CAMBIAR EL VALOR POR UN DEFAULT
-                rfs: []
+                avtr: "avatar0",
+                bnr: "banner0",
+                fich: "ficha0",
+                rfs: ["avatar0","banner0","ficha0"]
             };
             delete usr.hash;
             return {code: 0, data: {...base, ...usr}};
@@ -367,6 +371,19 @@ async function recoverQuestion(username) {
     }
 }
 
+async function anyadirPartida(usuario, ganada){
+    let que = {nj: 1};
+    if(ganada === true){
+        que["ng"] = 1;
+    }
+    const result = await usuarios.updateOne(
+        { _id: usuario},
+        {$inc: que}
+    );
+
+    return result["modifiedCount"];
+}
+
 module.exports = {registrar, logear, invitado, modificar_ficha, modificar_banner,
                     modificar_avatar, modificar_pass,getPerfil, deletePerfil,
-                    validar_respuesta, recoverQuestion}
+                    validar_respuesta, recoverQuestion, anyadirPartida}
