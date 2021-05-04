@@ -464,9 +464,9 @@ paths:
         required: true
         schema:
           enum:
-          - avatar
-          - formFicha
-          - banner
+          - Avatar
+          - Ficha
+          - Banner
           type: string
         style: simple
       responses:
