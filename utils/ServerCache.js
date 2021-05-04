@@ -1,9 +1,10 @@
 const logger = require('../logger');
 const NodeCache = require('node-cache');
 const Mutex = require('async-mutex').Mutex;
-const config = require('../config')
-const Tablero = require('./Tablero')
-const Preguntas = require('../model/Preguntas')
+const config = require('../config');
+const Tablero = require('./Tablero');
+const Preguntas = require('../model/Preguntas');
+const model = require('../model');
 
 let salasPub = null; //NodeCache con las salas publicas pendientes de empezar
 let salasPriv = null; //NodeCache con las salas privadas pendientes de empezar
@@ -780,7 +781,10 @@ async function reconexionJugador(id_partida, usuario){
 function borrarPartida(id_partida){
     try{
         const value = salasJuego.take(id_partida);
-        value.jugadores.forEach(j => usuariosEnSala.del(j.nombre));
+        value.jugadores.forEach(async (j) => {
+            await model.Usuarios.anyadirPartida(j.nombre, j.nRestantes === 0);
+            usuariosEnSala.del(j.nombre);
+        });
     } catch (e) {
         logger.error('Error al borrarPartida',e);
     } finally {
