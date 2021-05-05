@@ -720,7 +720,7 @@ async function abandonarPartida(id_partida, jugador){ //TODO Falta implementar q
         if(value !== undefined){
             const data = value.jugadores.findIndex(t => t.nombre===jugador);
             if(data !== -1){ // Está en la lista
-                return await value.mutex.runExclusive(async ()=>{
+                return await value.mutex.runExclusive(()=>{
                     let ret = 1, i = 1;
                     if(value.turno === jugador) { //Era su turno
                         while(!value.jugadores[(data+i)%value.nJugadores].conectado){
@@ -732,8 +732,7 @@ async function abandonarPartida(id_partida, jugador){ //TODO Falta implementar q
                     //value.jugadores.splice(data, 1); // Elimina al usuario
                     value.jugadores[data].conectado = false;
                     if(value.jugadores.every(elem => !elem.conectado)){
-                        //TODO cuenta como partida finalizada para actualizar nJugadas??
-                        await borrarPartida(id_partida);
+                        borrarPartidaSync(id_partida);
                     }
                     return ret; //Si cambia de turno valdrá 0, si no 1.
                 });
@@ -784,6 +783,23 @@ async function borrarPartida(id_partida){
         const value = salasJuego.take(id_partida);
         for(let i = 0; i < value.jugadores.length; i++){
             await model.Usuarios.anyadirPartida(value.jugadores[i].nombre, value.jugadores[i].nRestantes === 0);
+            usuariosEnSala.del(value.jugadores[i].nombre);
+        }
+    } catch (e) {
+        logger.error('Error al borrarPartida',e);
+    } finally {
+        if(!salasJuego.has(id_partida)) {
+            return 0;
+        } else {
+            return 1;
+        }
+    }
+}
+
+function borrarPartidaSync(id_partida){
+    try{
+        const value = salasJuego.take(id_partida);
+        for(let i = 0; i < value.jugadores.length; i++){
             usuariosEnSala.del(value.jugadores[i].nombre);
         }
     } catch (e) {
