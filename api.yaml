@@ -113,12 +113,12 @@ paths:
           required: true
           schema:
             type: string
-        - name: new-password
+        - name: newpassword
           in: header
           required: true
           schema:
             type: string
-        - name: old-password
+        - name: oldpassword
           in: header
           required: true
           schema:
@@ -162,7 +162,7 @@ paths:
           required: true
           schema:
             type: string
-        - name: new-password
+        - name: newpassword
           in: header
           required: true
           schema:
@@ -272,7 +272,7 @@ paths:
           required: true
           schema:
             type: string
-        - name: id-avatar
+        - name: idavatar
           in: header
           required: true
           schema:
@@ -310,7 +310,7 @@ paths:
           required: true
           schema:
             type: string
-        - name: id-form-ficha
+        - name: idformficha
           in: header
           required: true
           schema:
@@ -348,7 +348,7 @@ paths:
           required: true
           schema:
             type: string
-        - name: id-banner
+        - name: idbanner
           in: header
           required: true
           schema:
