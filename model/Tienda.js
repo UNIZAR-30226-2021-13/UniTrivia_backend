@@ -74,7 +74,7 @@ async function comprarItem(token, nombre){
             }
 
             const result = await usuarios.updateOne({_id: obj.user},
-                {$push: {rfs: nombre}}, {$inc: {cns: (-precio) }});
+                {$push: {rfs: nombre}, $inc: {cns: (-precio) }});
             if(result['modifiedCount'] === 1){
                 return 0;
 
