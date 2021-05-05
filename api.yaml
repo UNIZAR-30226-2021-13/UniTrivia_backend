@@ -276,7 +276,7 @@ paths:
           in: header
           required: true
           schema:
-            type: integer
+            type: string
       responses:
         '200':
           description: Avatar cambiado con éxito
@@ -314,7 +314,7 @@ paths:
           in: header
           required: true
           schema:
-            type: integer
+            type: string
       responses:
         '200':
           description: Forma de ficha cambiada con éxito
@@ -352,7 +352,7 @@ paths:
           in: header
           required: true
           schema:
-            type: integer
+            type: string
       responses:
         '200':
           description: Banner cambiado con éxito
