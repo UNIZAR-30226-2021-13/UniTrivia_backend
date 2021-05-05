@@ -128,14 +128,14 @@ paths:
         style: simple
       - explode: false
         in: header
-        name: new-password
+        name: newpassword
         required: true
         schema:
           type: string
         style: simple
       - explode: false
         in: header
-        name: old-password
+        name: oldpassword
         required: true
         schema:
           type: string
@@ -184,7 +184,7 @@ paths:
         style: simple
       - explode: false
         in: header
-        name: new-password
+        name: newpassword
         required: true
         schema:
           type: string
@@ -307,7 +307,7 @@ paths:
         style: simple
       - explode: false
         in: header
-        name: id-avatar
+        name: idavatar
         required: true
         schema:
           type: integer
@@ -349,7 +349,7 @@ paths:
         style: simple
       - explode: false
         in: header
-        name: id-form-ficha
+        name: idformficha
         required: true
         schema:
           type: integer
@@ -391,7 +391,7 @@ paths:
         style: simple
       - explode: false
         in: header
-        name: id-banner
+        name: idbanner
         required: true
         schema:
           type: integer
