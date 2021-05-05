@@ -21,7 +21,7 @@ async function recuperarCatalogo(tipo){
             code = 1;
             id = "Error recuperarCatalogo: no hay imagenes del tipo.";
         } else {
-            for(let i = 0; imgs.length ; i++){
+            for(let i = 0; i < imgs.length ; i++){
                 array.push({nombre: imgs[i]._id, precio: imgs[i].precio});
             }
             code = 0;
@@ -49,6 +49,7 @@ async function comprarItem(token, nombre){
         const obj = jwt.validarToken(token);
         if(obj) {
             const exists = await imagenes.findOne({_id: nombre});
+            console.log(exists);
             if(!exists) {
                 logger.error("Error comprarItem: ítem no existe");
                 return 3;
@@ -56,19 +57,24 @@ async function comprarItem(token, nombre){
 
             const precio = exists['precio'];
             const user = await usuarios.findOne({_id: obj.user});
+            console.log(user);
             if(!user){
                 logger.error("Error comprarItem: usuario no existe");
                 return 4;
             }
 
-            if(exists['precio'] > user['cns']){
+            if(precio > user['cns']){
                 logger.error("Error comprarItem: no tiene suficiente dinero");
                 return 5;
+            }
 
+            if(user['rfs'].includes(nombre)){
+                logger.error("Error comprarItem: ítem ya comprado");
+                return 6;
             }
 
             const result = await usuarios.updateOne({_id: obj.user},
-                {$push: {rfs: nombre}}, {$set: {cns: Int32(user['cns'] - exists['precio'] )}});
+                {$push: {rfs: nombre}}, {$inc: {cns: (-precio) }});
             if(result['modifiedCount'] === 1){
                 return 0;
 

@@ -47,7 +47,8 @@ async function registrar(username, password, email, pregunta, respuesta){
                 avtr: "avatar0",
                 bnr: "banner0",
                 fich: "ficha0",
-                rfs: ["avatar0","banner0","ficha0"]
+                rfs: ["avatar0","banner0","ficha0"],
+                cns: 0
             };
             let res = await usuarios.insertOne(usuario);
             if(res['insertedCount'] === 1){
