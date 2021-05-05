@@ -310,7 +310,7 @@ paths:
         name: idavatar
         required: true
         schema:
-          type: integer
+          type: string
         style: simple
       responses:
         "200":
@@ -352,7 +352,7 @@ paths:
         name: idformficha
         required: true
         schema:
-          type: integer
+          type: string
         style: simple
       responses:
         "200":
@@ -394,7 +394,7 @@ paths:
         name: idbanner
         required: true
         schema:
-          type: integer
+          type: string
         style: simple
       responses:
         "200":
