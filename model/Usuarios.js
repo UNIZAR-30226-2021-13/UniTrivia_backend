@@ -193,7 +193,7 @@ async function modificar_avatar(token, id_avatar){
         const usuarios = db.getBD().collection("usuarios");
         const obj = jwt.validarToken(token);
         if(obj) {
-            const result = await usuarios.updateOne({_id: obj.user}, {$set: {avtr: ObjectId(id_avatar)}});
+            const result = await usuarios.updateOne({_id: obj.user}, {$set: {avtr: id_avatar}});
             if (result) {
                 logger.info("AVATAR: ok");
                 return 0;
