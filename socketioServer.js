@@ -217,7 +217,7 @@ class SocketioServer{
                         if(cache.obtenerQuesitosRestantes(idSala, usuario) === 0){
                             console.log("Al menos entra aqui")
                             this.io.in(idSala).emit("finDelJuego",usuario);
-                            cache.borrarPartida(idSala);
+                            await cache.borrarPartida(idSala);
                         }
                         resultado = {res: "ok", info: ""};
                         break;

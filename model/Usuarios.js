@@ -373,6 +373,8 @@ async function recoverQuestion(username) {
 }
 
 async function anyadirPartida(usuario, ganada){
+
+    const usuarios = db.getBD().collection("usuarios");
     let que = {nj: 1};
     if(ganada === true){
         que["ng"] = 1;
