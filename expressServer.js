@@ -59,6 +59,8 @@ class ExpressServer {
     this.app.get('/Profile', (req, res) => res.sendFile(path.join(__dirname,'build','index.html')));
     this.app.get('/Settings', (req, res) => res.sendFile(path.join(__dirname,'build','index.html')));
     this.app.get('/ChangePassword', (req, res) => res.sendFile(path.join(__dirname,'build','index.html')));
+    this.app.get('/Play', (req, res) => res.sendFile(path.join(__dirname,'build','index.html')));
+    this.app.get('/Game', (req, res) => res.sendFile(path.join(__dirname,'build','index.html')));
 
   }
 
