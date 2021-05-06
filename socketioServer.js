@@ -3,6 +3,7 @@ const socketio = require('socket.io');
 const jwt = require('./utils/JWT');
 const cache = require('./utils/ServerCache');
 const logger = require('./logger');
+const {getImgs} = require('./model/Usuarios');
 
 class SocketioServer{
     constructor(expressServer, port) {
@@ -94,8 +95,11 @@ class SocketioServer{
                     if (res !== undefined && res.code === 0) {
                         socket.join(res.sala);
                         idSala = res.sala;
-                        socket.to(res.sala).emit('nuevoJugador', usuario); // no emite al propio socket
-                        socket.emit('cargarJugadores', cache.obtenerJugadores(idSala));
+                        let imgs = await getImgs(usuario);
+                        socket.to(res.sala).emit('nuevoJugador',
+                            {jugador: usuario, imgs: imgs['data']}); // no emite al propio socket
+                        let ret = await cache.obtenerJugadores(idSala);
+                        socket.emit('cargarJugadores', ret);
 
                     } else {
                         socket.disconnect(true);

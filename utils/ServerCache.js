@@ -335,7 +335,7 @@ async function buscarPartida(usuario){
  * @param id_sala Id de la sala
  * @returns {{code: number, jugadores: []}|{code: number, jugadores: ([]|*)}}
  */
-function obtenerJugadores(id_sala){
+async function obtenerJugadores(id_sala){
     try{
         let value = undefined;
         if(salasPriv.has(id_sala)) {
@@ -349,7 +349,17 @@ function obtenerJugadores(id_sala){
         if(value === undefined){
             return {code:1 , jugadores: []};
         } else {
-            return {code:0 , jugadores: value.jugadores};
+            let res = [];
+            for(let i = 0; i < value.jugadores.length; i++){
+                let imgs = await model.Usuarios.getImgs(value.jugadores[i]);
+                if(imgs['code'] != 0){
+                    return {code:2, jugadores: []}
+                }
+                console.log(imgs['data'])
+                res.push({jugador: value.jugadores[i],
+                    imgs: imgs['data']})
+            }
+            return {code:0 , jugadores: res};
         }
     } catch (e){
         logger.error('Error al obtener jugadores de la sala', e);

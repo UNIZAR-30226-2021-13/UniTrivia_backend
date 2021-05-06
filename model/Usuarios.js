@@ -387,6 +387,27 @@ async function anyadirPartida(usuario, ganada){
     return result["modifiedCount"];
 }
 
+/**
+ * Devuelve las imágenes asociadas a un usuario
+ *
+ * @param username
+ * @returns {Promise<{code: number, data: {ficha: *, banner: *, avatar: *}}|{code: number, data: null}>}
+ */
+async function getImgs(username){
+    const usuarios = db.getBD().collection("usuarios");
+    try {
+        const usr = await usuarios.findOne({_id: username});
+        if (usr) {
+            return {code: 0, data: {avatar: usr['avtr'],
+                banner: usr['bnr'], ficha: usr['fich']}};
+        } else {
+            return {code: 1, data: null};
+        }
+    }catch (e) {
+        return {code: 2, data: null};
+    }
+}
+
 module.exports = {registrar, logear, invitado, modificar_ficha, modificar_banner,
                     modificar_avatar, modificar_pass,getPerfil, deletePerfil,
-                    validar_respuesta, recoverQuestion, anyadirPartida}
+                    validar_respuesta, recoverQuestion, anyadirPartida, getImgs}
