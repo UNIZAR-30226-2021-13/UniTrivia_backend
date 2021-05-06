@@ -356,8 +356,8 @@ async function obtenerJugadores(id_sala){
                     return {code:2, jugadores: []}
                 }
                 console.log(imgs['data'])
-                res.push({jugador: value.jugadores[i],
-                    imgs: imgs['data']})
+                res.push({usuario: value.jugadores[i],
+                    imgs: imgs['data']});
             }
             return {code:0 , jugadores: res};
         }
@@ -372,18 +372,20 @@ async function obtenerJugadores(id_sala){
  * @param id_sala
  * @returns {{code: number, jugadores: *[]}}
  */
-function estadoPartida(id_sala){
+async function estadoPartida(id_sala){
     try{
         const value = salasJuego.get(id_sala);
         if(value !== undefined){
             let jugadores = [];
-            value.jugadores.forEach( (jugador, _) => {
+            for(let i = 0; i < value.jugadores.length; i++){
+                let imgs = await model.Usuarios.getImgs(value.jugadores[i].nombre);
                 jugadores.push({
-                    usuario: jugador.nombre,
-                    casilla: jugador.casilla,
-                    quesitos: jugador.quesitos
+                    usuario: value.jugadores[i].nombre,
+                    casilla: value.jugadores[i].casilla,
+                    quesitos: value.jugadores[i].quesitos,
+                    imgs: imgs.data
                 });
-            });
+            }
 
             return {code: 0, jugadores: jugadores}
         }else{

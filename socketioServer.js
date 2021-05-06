@@ -67,8 +67,11 @@ class SocketioServer{
                     return
                 }
                 socket.join(idSala);
-                socket.to(idSala).emit('reconexionJugador', usuario); // no emite al propio socket
-                socket.emit('estadoPartida', cache.estadoPartida(idSala));
+                let imgs = await getImgs(usuario);
+                socket.to(idSala).emit('reconexionJugador',
+                    {jugador: usuario, imgs: imgs['data']}); // no emite al propio socket
+                let ret = await cache.estadoPartida(idSala);
+                socket.emit('estadoPartida', ret);
 
             } else {
                 if (operacion === 'crearSala') {
