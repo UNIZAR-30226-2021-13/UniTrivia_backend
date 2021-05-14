@@ -157,9 +157,19 @@ function crear(){
 
 function stop() {
     try {
+
+        console.log(salasPub.keys());
+        console.log(salasPriv.keys());
+        console.log(salasJuego.keys());
+        console.log(usuariosEnSala.keys());
+        salasPub.del(salasPub.keys());
+        salasPriv.del(salasPriv.keys());
+        salasJuego.del(salasJuego.keys());
+        usuariosEnSala.del(usuariosEnSala.keys());
         salasPub.close();
         salasPriv.close();
         salasJuego.close();
+        usuariosEnSala.close();
 
     } catch(err){
         logger.error("Error al terminar la memoria cache", err);
@@ -383,6 +393,7 @@ async function estadoPartida(id_sala){
                     usuario: value.jugadores[i].nombre,
                     casilla: value.jugadores[i].casilla,
                     quesitos: value.jugadores[i].quesitos,
+                    nRestantes: value.jugadores[i].nRestantes,
                     imgs: imgs.data
                 });
             }
@@ -581,8 +592,10 @@ async function comenzarPartida(id_sala){
                 }
                 let jugadores = []
                 sala.jugadores.forEach(function(jugador, index, array){
-                    jugadores.push( new NodoJugador(jugador, 777, [], config.MAX_QUESITOS));
+                    jugadores.push( new NodoJugador(jugador, 777, [], /*config.MAX_QUESITOS*/6));
                 })
+                console.log("CREANDO PARTIDA:")
+                console.log(jugadores)
                 const partida = new NodoJuego(sala.jugadores[~~(Math.random() * sala.nJugadores)], jugadores, sala.nJugadores);
                 salasJuego.set(id_sala, partida);
                 sala.mutex.cancel();
@@ -617,36 +630,35 @@ async function nuevaJugada(id_partida, jugador, nuevaCasilla, nuevoQuesito, finT
     try{
         let value = salasJuego.get(id_partida);
         if(value !== undefined){
-            if(value.turno === jugador){
-                let index = value.jugadores.findIndex(t => t.nombre===jugador);
-                if(index !== -1){
-                    return await value.mutex.runExclusive(()=>{
-                        let res = 1;
-                        if(nuevaCasilla !== "") {
-                            value.jugadores[index].casilla = nuevaCasilla;
-                        }
-                        const index2 = value.jugadores[index].quesitos.findIndex(t=> t === nuevoQuesito);
-                        if(nuevoQuesito !== "" && index2 ===-1) {
-                            value.jugadores[index].quesitos.push(nuevoQuesito);
-                            value.jugadores[index].nRestantes--;
-                        }
-                        console.log(value.jugadores[index]);
-                        if(finTurno && value.jugadores[index].nRestantes > 0) {
-                            let i = 1
-                            while (!value.jugadores[(index + i) % value.nJugadores].conectado) {
-                                i++;
-                            }
-                            value.turno = value.jugadores[(index + i) % value.nJugadores].nombre;
-                            res = 0;
-                        }
-                        return res;
-                    })
-                }else{
-                    return 2
-                }
-            }else{
+            const index = value.jugadores.findIndex(t => t.nombre===jugador);
+            if(index === -1){
+                return 2;
+            }
+            if(value.turno !== jugador){
+                console.log("Pide " + jugador + ". Le toca a " + value.turno);
                 return 3;
             }
+            return await value.mutex.runExclusive(()=>{
+                let res = 1;
+                if(nuevaCasilla !== "") {
+                    value.jugadores[index].casilla = nuevaCasilla;
+                }
+                const index2 = value.jugadores[index].quesitos.findIndex(t=> t === nuevoQuesito);
+                if(nuevoQuesito !== "" && index2 ===-1) {
+                    value.jugadores[index].quesitos.push(nuevoQuesito);
+                    value.jugadores[index].nRestantes--;
+                }
+                //console.log(value.jugadores[index]);
+                if(finTurno && value.jugadores[index].nRestantes > 0) {
+                    let i = 1
+                    while (!value.jugadores[(index + i) % value.nJugadores].conectado) {
+                        i++;
+                    }
+                    value.turno = value.jugadores[(index + i) % value.nJugadores].nombre;
+                    res = 0;
+                }
+                return res;
+            });
         }else{
             return 4;
         }
@@ -667,7 +679,12 @@ function obtenerQuesitosRestantes(id_partida, jugador){
         const value = salasJuego.get(id_partida);
         if(value !== undefined){
             const data = value.jugadores.findIndex(t => t.nombre===jugador);
-            return value.jugadores[data].nRestantes;
+            console.log("idx = " + data);
+            if(data !== -1){
+                return value.jugadores[data].nRestantes;
+            }else{
+                return undefined;
+            }
         }else{
             return undefined;
         }
@@ -691,7 +708,11 @@ function obtenerPosicion(id_partida, usuario){
             console.log("obtenerPosicion: salasJuego.get devuelve sala");
             const data = value.jugadores.findIndex(t => t.nombre===usuario);
             console.log("obtenerPosicion: findIndex =", data);
-            return value.jugadores[data].casilla;
+            if(data !== -1){
+                return value.jugadores[data].casilla;
+            }else{
+                return undefined;
+            }
         }else{
             console.log("obtenerPosicion: salasJuego.get undefined");
             return undefined;
@@ -897,6 +918,7 @@ module.exports =
         abandonarPartida,
         reconexionJugador,
         borrarPartida,
+        borrarPartidaSync,
         getPosiblesJugadas,
         stop
     };

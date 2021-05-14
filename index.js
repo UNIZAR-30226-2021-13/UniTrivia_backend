@@ -14,8 +14,11 @@ const launchServer = async () => {
     await this.close();
   }
   try {
-    cache.crear();/*
-    let res = await cacheTest.testSalas();
+    cache.crear();
+    console.log("\n\n\n\n");
+    let res = 0;
+    /*
+    res = await cacheTest.testSalas();
     if (res !== 0){
       console.log('Error test cache salas')
     }
@@ -23,8 +26,12 @@ const launchServer = async () => {
     if (res !== 0){
       console.log('Error test cache tablero')
     }
-
-    await cacheTest.testPartida();*/
+    */
+    res = await cacheTest.testPartidas();
+    if (res !== 0){
+      console.log('Error test cache tablero')
+    }
+    console.log("\n\n\n\n");
 
     this.expressServer = new ExpressServer(config.URL_PORT, config.OPENAPI_YAML);
     this.expressServer.launch();
@@ -35,6 +42,12 @@ const launchServer = async () => {
   }
 };
 process.on("SIGINT", async () => {
+  logger.info('Closing Pool Connection');
+  bd.terminar();
+  cache.stop();
+  process.exit();
+});
+process.on("SIGTERM", async () => {
   logger.info('Closing Pool Connection');
   bd.terminar();
   cache.stop();

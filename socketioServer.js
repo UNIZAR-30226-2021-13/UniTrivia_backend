@@ -221,7 +221,7 @@ class SocketioServer{
                             casilla: casilla,
                             ques: quesito
                         });
-                        if(ok == 0){
+                        if(ok === 0){
                             this.io.in(idSala).emit('turno', cache.obtenerTurno(idSala));
                         }
                         if(cache.obtenerQuesitosRestantes(idSala, usuario) === 0){
