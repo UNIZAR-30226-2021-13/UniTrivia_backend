@@ -3,6 +3,7 @@ const socketio = require('socket.io');
 const jwt = require('./utils/JWT');
 const cache = require('./utils/ServerCache');
 const logger = require('./logger');
+const {getImgs} = require('./model/Usuarios');
 
 class SocketioServer{
     constructor(expressServer, port) {
@@ -63,8 +64,11 @@ class SocketioServer{
                     return
                 }
                 socket.join(idSala);
-                socket.to(idSala).emit('reconexionJugador', usuario); // no emite al propio socket
-                socket.emit('estadoPartida', cache.estadoPartida(idSala));
+                let imgs = await getImgs(usuario);
+                socket.to(idSala).emit('reconexionJugador',
+                    {jugador: usuario, imgs: imgs['data']}); // no emite al propio socket
+                let ret = await cache.estadoPartida(idSala);
+                socket.emit('estadoPartida', ret);
 
             } else {
                 if (operacion === 'crearSala') {
@@ -91,8 +95,11 @@ class SocketioServer{
                     if (res !== undefined && res.code === 0) {
                         socket.join(res.sala);
                         idSala = res.sala;
-                        socket.to(res.sala).emit('nuevoJugador', usuario); // no emite al propio socket
-                        socket.emit('cargarJugadores', cache.obtenerJugadores(idSala));
+                        let imgs = await getImgs(usuario);
+                        socket.to(res.sala).emit('nuevoJugador',
+                            {jugador: usuario, imgs: imgs['data']}); // no emite al propio socket
+                        let ret = await cache.obtenerJugadores(idSala);
+                        socket.emit('cargarJugadores', ret);
 
                     } else {
                         socket.disconnect(true);
@@ -211,7 +218,7 @@ class SocketioServer{
                             casilla: casilla,
                             ques: quesito
                         });
-                        if(ok == 0){
+                        if(ok === 0){
                             this.io.in(idSala).emit('turno', cache.obtenerTurno(idSala));
                         }
                         if(cache.obtenerQuesitosRestantes(idSala, usuario) === 0){

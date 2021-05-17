@@ -15,8 +15,9 @@ const launchServer = async () => {
   }
   try {
     cache.crear();
-    /*
-    const res = await cacheTest.testSalas();
+    /*console.log("\n\n\n\n");
+    let res = 0;
+    res = await cacheTest.testSalas();
     if (res !== 0){
       console.log('Error test cache salas')
     }
@@ -24,8 +25,11 @@ const launchServer = async () => {
     if (res !== 0){
       console.log('Error test cache tablero')
     }
-
-    await cacheTest.testPartida();*/
+    res = await cacheTest.testPartidas();
+    if (res !== 0){
+      console.log('Error test cache tablero')
+    }
+    console.log("\n\n\n\n");*/
 
     this.expressServer = new ExpressServer(config.URL_PORT, config.OPENAPI_YAML);
     this.expressServer.launch();

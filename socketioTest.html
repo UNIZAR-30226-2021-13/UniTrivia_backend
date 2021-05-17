@@ -63,7 +63,7 @@
 
       function config(conn) {
         conn.on("connect", () => {
-          console.assert(conn.conected != true, 'No conectado')
+          console.assert(conn.conected !== true, 'No conectado')
           conn.emit("obtenerIdSala", (id) => {
             console.assert(id !== '', 'Error obtener idSala');
             sala = id;
