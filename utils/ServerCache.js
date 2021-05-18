@@ -362,7 +362,7 @@ async function obtenerJugadores(id_sala){
             let res = [];
             for(let i = 0; i < value.jugadores.length; i++){
                 let imgs = await model.Usuarios.getImgs(value.jugadores[i]);
-                if(imgs['code'] != 0){
+                if(imgs['code'] > 1){
                     return {code:2, jugadores: []}
                 }
                 console.log(imgs['data'])
