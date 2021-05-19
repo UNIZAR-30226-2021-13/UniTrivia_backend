@@ -260,7 +260,8 @@ paths:
       description: |
         Obtiene toda la información del usuario: nombre de usuario, email, pregunta de seguridad,
           respuesta de seguridad, lista de objectos comprados, estadísticas del jugador, opciones
-          de personalización y cantidad de monedas.
+          de personalización y cantidad de monedas. Si es un usuario invitado estará todo a string
+          vacío, a 0 y con los objetos por defecto salvo el nombre de usuario que aparecerá el generado.
       operationId: profileGET
       parameters:
       - explode: false

@@ -288,7 +288,21 @@ async function getPerfil(token) {
         } else {
             return {code: 2, data: null};
         }
-    //}else if(obj && !obj['guest']){
+    }else if(obj && obj['guest']){
+        const porDefecto = {
+            _id: obj["user"],
+            mail: "",
+            preg: "",
+            res: "",
+            cns: 0,
+            nj: 0,
+            ng: 0,
+            avtr: "avatar0",
+            bnr: "banner0",
+            fich: "ficha0",
+            rfs: ["avatar0","banner0","ficha0"]
+        };
+        return {code: 0, data: porDefecto};
     }else{
         return {code: 1, data: null};
     }
