@@ -210,6 +210,7 @@ class SocketioServer{
             socket.on('actualizarJugada', async ({casilla, quesito,finTurno}, fn) => {
                 let ok = await cache.nuevaJugada(idSala, usuario, casilla, quesito, finTurno);
                 let resultado = {res: "error", info: "Error desconocido"}
+                console.log("actualizarJugada\n casilla = " + casilla + "\n quesito = " + quesito + "\n finTurno = " + finTurno);
                 switch (ok){
                     case 0:
                     case 1:
@@ -241,6 +242,7 @@ class SocketioServer{
                         resultado = {res: "error", info: "Error desconocido"};
                         break;
                 }
+                console.log(resultado);
                 fn(resultado);
 
             });
