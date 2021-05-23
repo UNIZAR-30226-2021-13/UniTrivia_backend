@@ -170,6 +170,13 @@ paths:
       parameters:
       - explode: false
         in: header
+        name: username
+        required: true
+        schema:
+          type: string
+        style: simple
+      - explode: false
+        in: header
         name: res
         required: true
         schema:
