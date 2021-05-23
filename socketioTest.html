@@ -228,7 +228,7 @@
       }
 
       function abandonarPartida(){
-        conn.emit("abandonarSala", (res)=>{
+        conn.emit("abandonarPartida", (res)=>{
           console.log("Al abandonar partida: " + res["res"] + " " + res['info']);
         });
       }
