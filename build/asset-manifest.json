@@ -1,8 +1,8 @@
 {
   "files": {
     "main.css": "/static/css/main.0fcf0e88.chunk.css",
-    "main.js": "/static/js/main.9683c474.chunk.js",
-    "main.js.map": "/static/js/main.9683c474.chunk.js.map",
+    "main.js": "/static/js/main.41acbd07.chunk.js",
+    "main.js.map": "/static/js/main.41acbd07.chunk.js.map",
     "runtime-main.js": "/static/js/runtime-main.4ea21226.js",
     "runtime-main.js.map": "/static/js/runtime-main.4ea21226.js.map",
     "static/css/2.2b7f8c36.chunk.css": "/static/css/2.2b7f8c36.chunk.css",
@@ -13,13 +13,13 @@
     "static/css/main.0fcf0e88.chunk.css.map": "/static/css/main.0fcf0e88.chunk.css.map",
     "static/js/2.b17ea081.chunk.js.LICENSE.txt": "/static/js/2.b17ea081.chunk.js.LICENSE.txt",
     "static/media/ascensor.fabbf54a.mp3": "/static/media/ascensor.fabbf54a.mp3",
-    "static/media/dado.80ec73e2.mp3": "/static/media/dado.80ec73e2.mp3"
+    "static/media/dadoMusica.80ec73e2.mp3": "/static/media/dadoMusica.80ec73e2.mp3"
   },
   "entrypoints": [
     "static/js/runtime-main.4ea21226.js",
     "static/css/2.2b7f8c36.chunk.css",
     "static/js/2.b17ea081.chunk.js",
     "static/css/main.0fcf0e88.chunk.css",
-    "static/js/main.9683c474.chunk.js"
+    "static/js/main.41acbd07.chunk.js"
   ]
 }
