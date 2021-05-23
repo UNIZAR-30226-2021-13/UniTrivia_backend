@@ -747,7 +747,7 @@ function obtenerTurno(id_partida){
  * @param jugador
  * @returns {Promise<number>}
  */
-async function abandonarPartida(id_partida, jugador){ //TODO Falta implementar que pueda volver el usuario
+async function abandonarPartida(id_partida, jugador){
     try{
         let value = salasJuego.get(id_partida);
         if(value !== undefined){
