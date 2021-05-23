@@ -119,9 +119,6 @@ class SocketioServer{
                 fn(idSala);
             })
 
-            //TODO considerar posibles casos de error al actualizar para condicionar la respuesta con un
-            // codigo por ejemplo
-
             socket.on('abandonarSala', async (fn) => {
                 let res = await cache.abandonarSala(idSala, usuario)
                 if( res.code === 0){

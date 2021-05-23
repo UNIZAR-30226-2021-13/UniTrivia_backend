@@ -198,6 +198,38 @@ paths:
       tags:
       - Usuario
       x-eov-operation-handler: controllers/UsuarioController
+  /login/recover/question:
+    get:
+      description: |
+        Se le pasa comos parámetro el nombre de usuario
+
+        Devuelve la pregunta de recuperación de cuenta del usuario.
+      operationId: recoverQuestion
+      parameters:
+        - explode: false
+          in: header
+          name: username
+          required: true
+          schema:
+            type: string
+          style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: Pregunta recuperada con éxito
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Error al cambiar contraseña
+      tags:
+        - Usuario
+      x-eov-operation-handler: controllers/UsuarioController
+
   /logAsGuest:
     get:
       description: |
