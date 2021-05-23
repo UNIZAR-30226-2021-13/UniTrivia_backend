@@ -170,13 +170,6 @@ paths:
       parameters:
       - explode: false
         in: header
-        name: jwt
-        required: true
-        schema:
-          type: string
-        style: simple
-      - explode: false
-        in: header
         name: res
         required: true
         schema:
@@ -202,8 +195,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
           description: Error al cambiar contraseña
-      security:
-      - jwt: []
       tags:
       - Usuario
       x-eov-operation-handler: controllers/UsuarioController
