@@ -125,6 +125,7 @@ class SocketioServer{
             console.log("sala = " + sala);
 
             socket.on('obtenerIdSala', async (fn) => {
+                console.log("obtenerIdSala - usuario = " + usuario + " idSala = " + idSala);
                 fn(idSala);
             })
 
